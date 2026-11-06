@@ -21,7 +21,7 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 
 ### Goals
 
-1. Let Sinhala-language writers create accounts and publish stories or serialised novels.
+1. Let Sinhala-language writers create accounts and publish stories, poetry, songs, or serialised novels.
 2. Let readers browse, search, follow writers, read chapters, like stories, and comment.
 3. Require administrator approval before any story or chapter becomes public.
 4. Provide writer engagement metrics and an automatic tier system.

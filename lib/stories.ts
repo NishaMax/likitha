@@ -1,30 +1,43 @@
+export const contentTypes = ["All", "Stories", "Poetry", "Songs"] as const;
+export type ContentTypeFilter = (typeof contentTypes)[number];
+export type ContentType = Exclude<ContentTypeFilter, "All">;
+
 export const genres = [
-  "All stories",
+  "All genres",
   "Romance",
   "Drama",
   "Fantasy",
   "Mystery",
   "Folklore",
+  "Love",
+  "Nature",
 ] as const;
 
 export type Genre = (typeof genres)[number];
 export type SortOption = "Trending" | "Newest" | "Most read";
 
-export type Story = {
+export type Work = {
   id: string;
+  type: ContentType;
   title: string;
   author: string;
-  genre: Exclude<Genre, "All stories">;
-  chapters: number;
+  genre: Exclude<Genre, "All genres">;
   readers: string;
   description: string;
   color: string;
   featured?: boolean;
+  chapters?: number;
 };
 
-export const stories: Story[] = [
+export type Story = Work & {
+  type: "Stories";
+  chapters: number;
+};
+
+export const works: Work[] = [
   {
     id: "awasaan-wessa",
+    type: "Stories",
     title: "අවසන් වැස්ස",
     author: "දිනුෂා පෙරේරා",
     genre: "Romance",
@@ -36,6 +49,7 @@ export const stories: Story[] = [
   },
   {
     id: "sandakada-pahana",
+    type: "Stories",
     title: "සඳකඩ පහණ",
     author: "කවිඳු රණසිංහ",
     genre: "Drama",
@@ -46,6 +60,7 @@ export const stories: Story[] = [
   },
   {
     id: "walakulu-atharin",
+    type: "Stories",
     title: "වලාකුළු අතරින්",
     author: "සචිනි ජයවර්ධන",
     genre: "Fantasy",
@@ -56,6 +71,7 @@ export const stories: Story[] = [
   },
   {
     id: "gini-diyawara",
+    type: "Stories",
     title: "ගිනි දියවර",
     author: "මලිත් ප්‍රනාන්දු",
     genre: "Mystery",
@@ -66,6 +82,7 @@ export const stories: Story[] = [
   },
   {
     id: "mahagedara",
+    type: "Stories",
     title: "මහගෙදර",
     author: "තරුෂි වික්‍රමසිංහ",
     genre: "Folklore",
@@ -76,6 +93,7 @@ export const stories: Story[] = [
   },
   {
     id: "oba-nathi-dawasaka",
+    type: "Stories",
     title: "ඔබ නැති දවසක",
     author: "නෙත්මි අබේකෝන්",
     genre: "Romance",
@@ -84,4 +102,36 @@ export const stories: Story[] = [
     description: "වෙන්වීමකින් පසු නැවත හමුවන හදවත් දෙකක්.",
     color: "from-[#714558] via-[#423043] to-[#1e202d]",
   },
+  {
+    id: "sanda-kirini",
+    type: "Poetry",
+    title: "සඳ කිරණි",
+    author: "මනෝජ් දිසානායක",
+    genre: "Love",
+    readers: "980",
+    description: "නිහඬ රාත්‍රියක හිතට ඇසෙන කෙටි කවි එකතුවක්.",
+    color: "from-[#4c4a70] via-[#34344f] to-[#1b202c]",
+  },
+  {
+    id: "wassa-enna",
+    type: "Poetry",
+    title: "වැස්ස එන්න",
+    author: "සචිනි ජයවර්ධන",
+    genre: "Nature",
+    readers: "760",
+    description: "වැස්ස, මතක සහ මිනිස් හදවත් ගැන ලියැවුණු කවි.",
+    color: "from-[#31565a] via-[#294048] to-[#1b202c]",
+  },
+  {
+    id: "oba-nam",
+    type: "Songs",
+    title: "ඔබ නම්",
+    author: "කවිඳු රණසිංහ",
+    genre: "Love",
+    readers: "1.1k",
+    description: "ගී පදයක් වගේ මතකයේ රැඳෙන ආදරයේ වචන.",
+    color: "from-[#6d4b68] via-[#403149] to-[#1d202d]",
+  },
 ];
+
+export const stories = works.filter((work): work is Story => work.type === "Stories");
