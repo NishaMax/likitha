@@ -29,7 +29,7 @@ export default function DashboardNav({ role }: DashboardNavProps) {
   return (
     <header className="border-b border-[#202638] bg-[#0f1117]/95 backdrop-blur">
       <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-        <Link href="/" className="shrink-0 font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha home">
+        <Link href="/dashboard" className="shrink-0 font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha dashboard">
           likitha<span className="text-[#c8a96e]">.</span>
         </Link>
         <nav className="hidden items-center gap-1 md:flex" aria-label="Dashboard navigation">
