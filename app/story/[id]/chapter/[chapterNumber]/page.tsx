@@ -3,12 +3,10 @@ import { notFound } from "next/navigation";
 import { stories } from "@/lib/stories";
 
 export function generateStaticParams() {
-  return stories.flatMap((story) =>
-    Array.from({ length: story.chapters }, (_, index) => ({
-      id: story.id,
-      chapterNumber: String(index + 1),
-    })),
-  );
+  return stories.map((story) => ({
+    id: story.id,
+    chapterNumber: "1",
+  }));
 }
 
 type ChapterPageProps = {
