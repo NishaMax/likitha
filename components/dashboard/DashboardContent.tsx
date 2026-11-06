@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import SignOutButton from "@/components/auth/SignOutButton";
+import DashboardNav from "@/components/dashboard/DashboardNav";
 
 const dashboardCopy = {
   READER: {
@@ -46,12 +46,7 @@ export default async function DashboardContent() {
 
   return (
     <>
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-        <Link href="/" className="font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha home">
-          likitha<span className="text-[#c8a96e]">.</span>
-        </Link>
-        <SignOutButton />
-      </header>
+      <DashboardNav role={role} />
 
       <section className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:px-8 sm:pt-16 lg:px-10">
         <div className="rounded-2xl border border-[#30384e] bg-[#171b26] p-6 sm:p-10">
