@@ -17,6 +17,7 @@ export default function WriterProfileForm({ initialName, initialBio, initialAvat
   const [bio, setBio] = useState(initialBio);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
@@ -41,21 +42,28 @@ export default function WriterProfileForm({ initialName, initialBio, initialAvat
   async function saveProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setSaved(false);
     setSaving(true);
-    const response = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, bio, avatarUrl }),
-    });
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName, bio, avatarUrl }),
+      });
 
-    if (!response.ok) {
-      const body = await response.json() as { error?: string };
-      setError(body.error ?? "Unable to save your profile.");
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        setError(body.error ?? "Unable to save your profile.");
+        return;
+      }
+
+      setSaved(true);
+      router.refresh();
+    } catch {
+      setError("Unable to reach Likitha. Check your connection and try again.");
+    } finally {
       setSaving(false);
-      return;
     }
-
-    router.refresh();
   }
 
   return (
@@ -85,6 +93,7 @@ export default function WriterProfileForm({ initialName, initialBio, initialAvat
       </div>
 
       {error && <p role="alert" className="rounded-lg border border-[#f87171]/30 bg-[#f87171]/10 px-4 py-3 text-sm text-[#fca5a5]">{error}</p>}
+      {saved && <p role="status" className="rounded-lg border border-[#86efac]/30 bg-[#86efac]/10 px-4 py-3 text-sm text-[#bbf7d0]">Your writer profile has been saved.</p>}
       <button type="submit" disabled={saving} className="min-h-12 rounded-lg bg-[#c8a96e] px-6 font-semibold text-[#0f1117] hover:bg-[#d9ba7d] disabled:opacity-60">
         {saving ? "Saving..." : "Save writer profile"}
       </button>
