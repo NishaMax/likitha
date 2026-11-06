@@ -11,6 +11,9 @@ export default function Home() {
           <Link href="/browse" className="hidden min-h-11 items-center rounded-full px-4 text-[#9ba5c0] transition hover:text-[#e8ecf4] sm:flex">
             Discover
           </Link>
+          <Link href="/auth?mode=login" className="flex min-h-11 items-center rounded-full px-4 text-[#9ba5c0] transition hover:text-[#e8ecf4]">
+            Log in
+          </Link>
           <Link href="/auth?mode=register" className="flex min-h-11 items-center rounded-full border border-[#c8a96e]/40 px-4 text-[#c8a96e] transition hover:bg-[#c8a96e]/10">
             Start writing
           </Link>
