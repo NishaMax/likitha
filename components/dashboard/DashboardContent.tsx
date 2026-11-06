@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardNav from "@/components/dashboard/DashboardNav";
@@ -40,6 +41,7 @@ export default async function DashboardContent() {
       displayName: true,
       username: true,
       profileComplete: true,
+      avatarUrl: true,
       followersCount: true,
       likesReceived: true,
       readsCount: true,
@@ -58,27 +60,42 @@ export default async function DashboardContent() {
 
       <section className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:px-8 sm:pt-16 lg:px-10">
         <div className="rounded-2xl border border-[#30384e] bg-[#171b26] p-6 sm:p-10">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">{copy.eyebrow}</p>
-            <span className="rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/[.07] px-3 py-2 text-xs font-semibold text-[#c8a96e]">{role}</span>
+          <div className="flex flex-col-reverse gap-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-4">
+                <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">{copy.eyebrow}</p>
+                <span className="rounded-full border border-[#c8a96e]/30 bg-[#c8a96e]/[.07] px-3 py-2 text-xs font-semibold text-[#c8a96e]">{role}</span>
+              </div>
+              <h1 className="mt-8 max-w-2xl font-serif text-4xl tracking-tight text-[#e8ecf4] sm:text-5xl">
+                Hi, {displayName}.
+                <br />
+                <span className="text-[#c8a96e]">{copy.title}</span>
+              </h1>
+              <p className="mt-5 max-w-xl font-sinhala text-base leading-8 text-[#9ba5c0]">{copy.sinhala}</p>
+              <div className="flex flex-wrap gap-3">
+                <Link href={copy.href} className="mt-8 inline-flex min-h-12 items-center rounded-lg bg-[#c8a96e] px-6 font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d]">
+                  {copy.action} <span className="ml-2 text-lg">→</span>
+                </Link>
+                <Link href="/settings/profile" className="mt-8 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
+                  Edit public name
+                </Link>
+                {role === "WRITER" && (
+                  <Link href={`/writer/${user.username}`} className="mt-8 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
+                    View public profile
+                  </Link>
+                )}
+              </div>
+            </div>
+            <div className="flex shrink-0 justify-center sm:justify-end">
+              <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-2 border-[#c8a96e]/50 bg-[#12151e] text-5xl font-serif text-[#c8a96e] shadow-[0_0_0_8px_rgba(200,169,110,0.07)] sm:h-36 sm:w-36 sm:text-6xl">
+                {user.avatarUrl ? (
+                  <Image src={user.avatarUrl} alt={`${displayName} avatar`} width={144} height={144} className="h-full w-full object-cover" unoptimized />
+                ) : (
+                  displayName.charAt(0).toUpperCase()
+                )}
+              </div>
+            </div>
           </div>
-          <h1 className="mt-8 max-w-2xl font-serif text-4xl tracking-tight text-[#e8ecf4] sm:text-5xl">
-            Hi, {displayName}.
-            <br />
-            <span className="text-[#c8a96e]">{copy.title}</span>
-          </h1>
-          <p className="mt-5 max-w-xl font-sinhala text-base leading-8 text-[#9ba5c0]">{copy.sinhala}</p>
-          <Link href={copy.href} className="mt-8 inline-flex min-h-12 items-center rounded-lg bg-[#c8a96e] px-6 font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d]">
-            {copy.action} <span className="ml-2 text-lg">→</span>
-          </Link>
-          <Link href="/settings/profile" className="ml-3 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
-            Edit public name
-          </Link>
-          {role === "WRITER" && (
-            <Link href={`/writer/${user.username}`} className="ml-3 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
-              View public profile
-            </Link>
-          )}
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
