@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { stories } from "@/lib/stories";
+import PublicNav from "@/components/navigation/PublicNav";
 
 export function generateStaticParams() {
   return stories.map((story) => ({
@@ -22,14 +23,7 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
 
   return (
     <main className="min-h-screen">
-      <header className="mx-auto flex w-full max-w-3xl items-center justify-between px-5 py-5 sm:px-8">
-        <Link href="/" className="font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha home">
-          likitha<span className="text-[#c8a96e]">.</span>
-        </Link>
-        <Link href={`/story/${story.id}`} className="flex min-h-11 items-center rounded-full px-3 text-sm text-[#9ba5c0] transition hover:text-[#e8ecf4]">
-          ← Story
-        </Link>
-      </header>
+      <PublicNav />
 
       <article className="mx-auto max-w-3xl px-5 pb-20 pt-10 sm:px-8 sm:pt-16">
         <div className="border-b border-[#252d40] pb-8">
