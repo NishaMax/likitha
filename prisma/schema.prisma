@@ -13,14 +13,19 @@ model User {
   email         String    @unique
   username      String    @unique @default(cuid())
   displayName   String    @default("")
+  bio           String?   @db.Text
   name          String?
   image         String?
+  avatarUrl     String?   @db.Text
   emailVerified DateTime?
   passwordHash  String?
   profileComplete Boolean  @default(false)
   role          Role      @default(READER)
   tier          WriterTier @default(BRONZE)
   tierScore     Int       @default(0)
+  followersCount Int      @default(0)
+  likesReceived  Int      @default(0)
+  readsCount     Int      @default(0)
   isVerified    Boolean   @default(false)
   isBanned      Boolean   @default(false)
   createdAt     DateTime  @default(now())

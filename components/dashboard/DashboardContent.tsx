@@ -35,7 +35,15 @@ export default async function DashboardContent() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email?.toLowerCase() },
-    select: { role: true, displayName: true, profileComplete: true },
+    select: {
+      role: true,
+      displayName: true,
+      username: true,
+      profileComplete: true,
+      followersCount: true,
+      likesReceived: true,
+      readsCount: true,
+    },
   });
   if (!user) redirect("/auth?mode=login");
   if (!user.profileComplete) redirect("/onboarding");
@@ -66,14 +74,25 @@ export default async function DashboardContent() {
           <Link href="/settings/profile" className="ml-3 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
             Edit public name
           </Link>
+          {role === "WRITER" && (
+            <Link href={`/writer/${user.username}`} className="ml-3 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
+              View public profile
+            </Link>
+          )}
         </div>
 
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {[
-            ["01", role === "WRITER" ? "Stories in progress" : "Stories saved", "Your collection"],
-            ["02", role === "WRITER" ? "Readers reached" : "Chapters read", "Your activity"],
-            ["03", "Coming soon", "More for you"],
-          ].map(([number, title, label]) => (
+          {(role === "WRITER"
+            ? [
+                ["01", "Followers", String(user.followersCount)],
+                ["02", "Likes received", String(user.likesReceived)],
+                ["03", "Reads", String(user.readsCount)],
+              ]
+            : [
+                ["01", "Stories saved", "Your collection"],
+                ["02", "Chapters read", "Your activity"],
+                ["03", "Coming soon", "More for you"],
+              ]).map(([number, title, label]) => (
             <div key={number} className="rounded-xl border border-[#252d40] bg-[#12151e] p-5">
               <span className="font-mono text-xs text-[#c8a96e]">{number}</span>
               <p className="mt-8 text-sm font-semibold text-[#e8ecf4]">{title}</p>
