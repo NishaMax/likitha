@@ -1,7 +1,5 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import ReviewQueue from "@/components/admin/ReviewQueue";
@@ -14,11 +12,6 @@ export default function AdminReviewsPage() {
 
 async function AdminReviewsContent() {
   await connection();
-  const session = await auth();
-  if (!session?.user?.email) redirect("/admin/login");
-  const admin = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { role: true } });
-  if (admin?.role !== "ADMIN") redirect("/admin/login?error=forbidden");
-
   const [works, chapters, comments, users] = await Promise.all([
     prisma.work.findMany({ where: { status: "PENDING" }, orderBy: { submittedAt: "asc" }, select: { id: true, type: true, title: true, description: true, content: true, submittedAt: true, author: { select: { displayName: true } } } }),
     prisma.chapter.findMany({ where: { status: "PENDING" }, orderBy: { submittedAt: "asc" }, select: { id: true, chapterNo: true, title: true, content: true, submittedAt: true, work: { select: { title: true, author: { select: { displayName: true } } } } } }),

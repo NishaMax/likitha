@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 const actionSchema = z.object({
@@ -8,18 +7,7 @@ const actionSchema = z.object({
   action: z.enum(["hide", "unhide", "delete"]),
 });
 
-async function isAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) return false;
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email.toLowerCase() },
-    select: { role: true },
-  });
-  return user?.role === "ADMIN";
-}
-
 export async function GET() {
-  if (!(await isAdmin())) return NextResponse.json({ error: "Admin access is required." }, { status: 403 });
   const comments = await prisma.comment.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -36,7 +24,6 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  if (!(await isAdmin())) return NextResponse.json({ error: "Admin access is required." }, { status: 403 });
   let body: unknown;
   try {
     body = await request.json();

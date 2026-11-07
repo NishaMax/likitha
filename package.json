@@ -9,9 +9,7 @@
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "test": "vitest run",
-    "admin:provision": "node scripts/provision-admin.mjs",
-    "admin:reset": "node scripts/reset-admin.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

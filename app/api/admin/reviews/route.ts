@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PublicationStatus } from "@prisma/client";
 import { awardTierEvent } from "@/lib/tier";
@@ -13,20 +12,7 @@ const reviewSchema = z.object({
   note: z.string().trim().max(1000).optional(),
 });
 
-async function getAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) return null;
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email.toLowerCase() },
-    select: { id: true, role: true },
-  });
-  return user?.role === "ADMIN" ? user : null;
-}
-
 export async function GET() {
-  const admin = await getAdmin();
-  if (!admin) return NextResponse.json({ error: "Admin access is required." }, { status: 403 });
-
   const [works, chapters] = await Promise.all([
     prisma.work.findMany({
       where: { status: "PENDING" },
@@ -50,9 +36,6 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  const admin = await getAdmin();
-  if (!admin) return NextResponse.json({ error: "Admin access is required." }, { status: 403 });
-
   let body: unknown;
   try {
     body = await request.json();
