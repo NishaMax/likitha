@@ -34,8 +34,48 @@ model User {
   accounts      Account[]
   sessions      Session[]
   readingProgress ReadingProgress[]
+  works         Work[]
 
   @@index([role])
+}
+
+model Work {
+  id            String            @id @default(cuid())
+  authorId      String
+  type          WorkType
+  title         String
+  description   String            @db.Text
+  genre         String
+  content       String?           @db.Text
+  status        PublicationStatus @default(DRAFT)
+  submittedAt   DateTime?
+  publishedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  author   User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
+
+  @@index([authorId, status])
+  @@index([type, status])
+}
+
+model Chapter {
+  id          String            @id @default(cuid())
+  workId      String
+  chapterNo   Int
+  title       String
+  content     String            @db.Text
+  status      PublicationStatus @default(DRAFT)
+  submittedAt DateTime?
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  work Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([workId, chapterNo])
+  @@index([workId, status])
 }
 
 model ReadingProgress {
@@ -109,4 +149,11 @@ enum WorkType {
   STORY
   POETRY
   SONG
+}
+
+enum PublicationStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
 }

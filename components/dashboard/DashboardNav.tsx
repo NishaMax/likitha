@@ -14,6 +14,7 @@ const linksByRole = {
   WRITER: [
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Read stories" },
+    { href: "/dashboard/works", label: "My works" },
     { href: "/settings/profile", label: "Profile" },
   ],
   ADMIN: [
