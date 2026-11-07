@@ -13,19 +13,27 @@ export default function AdminLoginForm() {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const form = new FormData(event.currentTarget);
-    const result = await signIn("credentials", {
-      email: String(form.get("email") ?? ""),
-      password: String(form.get("password") ?? ""),
-      role: "ADMIN",
-      redirect: false,
-    });
-    if (result?.error) {
-      setError("Admin email or password is incorrect.");
+    try {
+      const form = new FormData(event.currentTarget);
+      const result = await Promise.race([
+        signIn("credentials", {
+          email: String(form.get("email") ?? ""),
+          password: String(form.get("password") ?? ""),
+          role: "ADMIN",
+          redirect: false,
+        }),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
+      ]);
+      if (!result || result.error) {
+        setError(!result ? "Sign-in timed out. Restart the dev server and try again." : "Admin email or password is incorrect.");
+        setBusy(false);
+        return;
+      }
+      router.push("/admin/reviews");
+    } catch {
+      setError("Unable to reach the sign-in service. Restart the dev server and try again.");
       setBusy(false);
-      return;
     }
-    router.push("/admin/reviews");
   }
 
   return (
