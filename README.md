@@ -59,12 +59,13 @@ npm run build
    - `NEXTAUTH_URL=https://likitha.lk`.
    - `NEXT_PUBLIC_SITE_URL=https://likitha.lk`.
    - `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`.
+   - `ADMIN_EMAIL` and a long random `ADMIN_PASSWORD`.
 3. Add the Vercel deployment URL and `https://likitha.lk` to the Google OAuth authorized origins and callback URLs:
    `https://likitha.lk/api/auth/callback/google`.
 4. Add `likitha.lk` to Vercel, then configure the DNS records Vercel provides. Verify HTTPS before changing the canonical URL.
 5. Submit `https://likitha.lk/sitemap.xml` in Google Search Console after DNS and HTTPS are working.
 
-Do not deploy the current development state publicly until admin authentication is restored. The admin review, comment moderation, and user-management routes are intentionally open because of the earlier development request.
+Admin authentication is required for `/admin/reviews` and all `/api/admin/*` handlers. Keep `ADMIN_EMAIL` and `ADMIN_PASSWORD` configured in Vercel Production, and never commit them to the repository.
 
 ## Product plan
 

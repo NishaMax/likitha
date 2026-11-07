@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { requireAdminApi } from "@/lib/admin-auth";
 
 const actionSchema = z.object({
   commentId: z.string().min(1),
@@ -8,6 +9,8 @@ const actionSchema = z.object({
 });
 
 export async function GET() {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
   const comments = await prisma.comment.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
@@ -24,6 +27,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
   let body: unknown;
   try {
     body = await request.json();

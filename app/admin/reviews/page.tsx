@@ -5,6 +5,7 @@ import DashboardNav from "@/components/dashboard/DashboardNav";
 import ReviewQueue from "@/components/admin/ReviewQueue";
 import CommentModeration from "@/components/admin/CommentModeration";
 import UserManagement from "@/components/admin/UserManagement";
+import { requireAdminPage } from "@/lib/admin-auth";
 
 export default function AdminReviewsPage() {
   return <Suspense fallback={<main className="min-h-screen" />}><AdminReviewsContent /></Suspense>;
@@ -12,6 +13,7 @@ export default function AdminReviewsPage() {
 
 async function AdminReviewsContent() {
   await connection();
+  await requireAdminPage();
   const [works, chapters, comments, users] = await Promise.all([
     prisma.work.findMany({ where: { status: "PENDING" }, orderBy: { submittedAt: "asc" }, select: { id: true, type: true, title: true, description: true, content: true, submittedAt: true, author: { select: { displayName: true } } } }),
     prisma.chapter.findMany({ where: { status: "PENDING" }, orderBy: { submittedAt: "asc" }, select: { id: true, chapterNo: true, title: true, content: true, submittedAt: true, work: { select: { title: true, author: { select: { displayName: true } } } } } }),

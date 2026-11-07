@@ -47,6 +47,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsed = credentialsSchema.safeParse(rawCredentials);
         if (!parsed.success) return null;
 
+        if (
+          parsed.data.role === "ADMIN" &&
+          parsed.data.email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() &&
+          process.env.ADMIN_PASSWORD &&
+          parsed.data.password === process.env.ADMIN_PASSWORD
+        ) {
+          return {
+            id: "environment-admin",
+            email: process.env.ADMIN_EMAIL,
+            name: "Likitha Admin",
+            role: "ADMIN",
+          };
+        }
+
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email.toLowerCase() },
         });
@@ -100,6 +114,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (databaseUser && !databaseUser.isBanned) {
           session.user.role = databaseUser.role;
+        } else if (token?.role === "ADMIN") {
+          session.user.role = "ADMIN";
         }
       } else {
         const sessionRole = token?.role ?? user?.role;

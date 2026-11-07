@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { PublicationStatus } from "@prisma/client";
 import { awardTierEvent } from "@/lib/tier";
 import { createNotification } from "@/lib/notifications";
+import { requireAdminApi } from "@/lib/admin-auth";
 
 const reviewSchema = z.object({
   entityType: z.enum(["work", "chapter"]),
@@ -13,6 +14,8 @@ const reviewSchema = z.object({
 });
 
 export async function GET() {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
   const [works, chapters] = await Promise.all([
     prisma.work.findMany({
       where: { status: "PENDING" },
@@ -36,6 +39,8 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
+  const denied = await requireAdminApi();
+  if (denied) return denied;
   let body: unknown;
   try {
     body = await request.json();
