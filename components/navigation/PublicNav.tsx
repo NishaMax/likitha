@@ -37,6 +37,16 @@ export default function PublicNav() {
           <Link href="/browse" className="hidden min-h-11 items-center rounded-lg px-3 text-sm text-[#9ba5c0] transition hover:bg-[#171b26] hover:text-[#e8ecf4] sm:flex">
             Browse stories
           </Link>
+          {user?.role === "READER" && (
+            <Link href="/profile" className="flex min-h-11 items-center rounded-lg px-3 text-sm text-[#9ba5c0] transition hover:bg-[#171b26] hover:text-[#e8ecf4]">
+              Profile
+            </Link>
+          )}
+          {user?.role === "WRITER" && (
+            <Link href="/settings/profile" className="flex min-h-11 items-center rounded-lg px-3 text-sm text-[#9ba5c0] transition hover:bg-[#171b26] hover:text-[#e8ecf4]">
+              Profile
+            </Link>
+          )}
           {user?.role === "WRITER" && (
             <Link href="/dashboard" className="flex min-h-11 items-center rounded-lg border border-[#c8a96e]/40 px-3 text-sm text-[#c8a96e] transition hover:bg-[#c8a96e]/10">
               Writer dashboard

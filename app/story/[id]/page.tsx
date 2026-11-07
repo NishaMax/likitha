@@ -29,6 +29,12 @@ export default async function StoryPage({ params }: StoryPageProps) {
     <main className="min-h-screen">
       <PublicNav />
 
+      <div className="mx-auto w-full max-w-6xl px-5 pt-6 sm:px-8 lg:px-10">
+        <Link href="/browse" className="inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#9ba5c0] transition hover:border-[#c8a96e]/60 hover:text-[#e8ecf4]">
+          ← Back to stories
+        </Link>
+      </div>
+
       <section className="relative overflow-hidden border-y border-[#202638] bg-[#12151e]">
         <div className={`absolute inset-0 bg-gradient-to-br ${story.color} opacity-20`} />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[260px_1fr] lg:items-end lg:gap-12 lg:px-10">

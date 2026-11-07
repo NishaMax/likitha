@@ -27,6 +27,9 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
       <PublicNav />
 
       <article className="mx-auto max-w-3xl px-5 pb-20 pt-10 sm:px-8 sm:pt-16">
+        <Link href="/browse" className="mb-8 inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#9ba5c0] transition hover:border-[#c8a96e]/60 hover:text-[#e8ecf4]">
+          ← Back to stories
+        </Link>
         <div className="border-b border-[#252d40] pb-8">
           <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">{story.title} · Chapter {number}</p>
           <h1 className="mt-5 font-sinhala text-3xl font-bold leading-relaxed text-[#e8ecf4] sm:text-4xl">පළමු හමුවීම</h1>
