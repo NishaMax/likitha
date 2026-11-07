@@ -5,6 +5,7 @@ import PublicNav from "@/components/navigation/PublicNav";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
 import ViewTracker from "@/components/engagement/ViewTracker";
+import { prisma } from "@/lib/prisma";
 
 export function generateStaticParams() {
   return stories.map((story) => ({ id: story.id }));
@@ -24,9 +25,40 @@ const chapterPreviews = [
 
 export default async function StoryPage({ params }: StoryPageProps) {
   const { id } = await params;
-  const story = stories.find((item) => item.id === id);
+  const sampleStory = stories.find((item) => item.id === id);
+  const databaseStory = sampleStory ? null : await prisma.work.findFirst({
+    where: { id, type: "STORY", status: "APPROVED" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      genre: true,
+      author: { select: { displayName: true, username: true } },
+      chapters: {
+        where: { status: "APPROVED" },
+        orderBy: { chapterNo: "asc" },
+        select: { chapterNo: true, title: true, publishedAt: true },
+      },
+    },
+  });
+  const story = sampleStory ?? (databaseStory ? {
+    id: databaseStory.id,
+    title: databaseStory.title,
+    description: databaseStory.description,
+    genre: databaseStory.genre,
+    author: databaseStory.author.displayName,
+    authorUsername: databaseStory.author.username,
+    chapters: databaseStory.chapters.length,
+    color: "from-[#334c50] via-[#273443] to-[#1b202d]",
+    chapterPreviews: databaseStory.chapters.map((chapter) => ({
+      number: chapter.chapterNo,
+      title: chapter.title,
+      date: chapter.publishedAt ? new Date(chapter.publishedAt).toLocaleDateString() : "Published",
+    })),
+  } : null);
 
   if (!story) notFound();
+  const previews = "chapterPreviews" in story ? story.chapterPreviews : chapterPreviews;
 
   return (
     <main className="min-h-screen">
@@ -59,7 +91,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
             <div className="mt-6 flex flex-wrap gap-5 text-xs text-[#6f7890]">
               <span>{story.chapters} chapters</span>
-              <span>{story.readers} readers</span>
+              <span>{"readers" in story ? story.readers : "New"} readers</span>
               <span>Updated weekly</span>
             </div>
 
@@ -87,7 +119,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
             <span className="text-sm text-[#6f7890]">{story.chapters} total</span>
           </div>
           <div className="mt-6 divide-y divide-[#252d40] rounded-2xl border border-[#252d40] bg-[#171b26] px-4">
-            {chapterPreviews.map((chapter) => (
+            {previews.map((chapter) => (
               <Link key={chapter.number} href={`/story/${story.id}/chapter/${chapter.number}`} className="flex min-h-20 items-center gap-4 py-4 transition hover:text-[#c8a96e]">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1e2335] font-mono text-xs text-[#c8a96e]">{String(chapter.number).padStart(2, "0")}</span>
                 <span className="min-w-0 flex-1">
@@ -111,7 +143,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
             </div>
           </div>
           <p className="mt-5 font-sinhala text-sm leading-7 text-[#9ba5c0]">කතා කියන්න ආදරය කරන, මිනිස් හදවත් ගැන ලියන ලේඛිකාවක්.</p>
-          <Link href={`/writer/${encodeURIComponent(story.author)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg border border-[#30384e] text-sm text-[#c8a96e] transition hover:border-[#c8a96e]">
+          <Link href={`/writer/${encodeURIComponent("authorUsername" in story ? story.authorUsername : story.author)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg border border-[#30384e] text-sm text-[#c8a96e] transition hover:border-[#c8a96e]">
             View profile
           </Link>
         </aside>

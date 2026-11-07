@@ -46,6 +46,13 @@ async function ReaderProfileContent() {
 
   if (!user) redirect("/auth?mode=login");
   if (user.role !== "READER") redirect("/dashboard");
+  const savedIds = user.savedWorks.map((item) => item.workId);
+  const progressIds = user.readingProgress.map((item) => item.workId);
+  const databaseWorks = await prisma.work.findMany({
+    where: { id: { in: [...new Set([...savedIds, ...progressIds])] }, status: "APPROVED" },
+    select: { id: true, type: true, title: true },
+  });
+  const databaseWorkMap = new Map(databaseWorks.map((work) => [work.id, work]));
 
   const completed = user.readingProgress.filter((item) => item.completed);
   const storiesCompleted = completed.filter((item) => item.workType === "STORY").length;
@@ -96,8 +103,10 @@ async function ReaderProfileContent() {
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {user.savedWorks.map((saved) => {
                 const work = works.find((candidate) => candidate.id === saved.workId);
-                if (!work) return null;
-                return <Link key={saved.workId} href={work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`} className="rounded-lg border border-[#30384e] bg-[#171b26] p-4 text-sm text-[#e8ecf4] hover:border-[#c8a96e]/60">{work.title}<span className="mt-1 block text-xs text-[#6f7890]">{work.type}</span></Link>;
+                const databaseWork = databaseWorkMap.get(saved.workId);
+                if (!work && !databaseWork) return null;
+                const type = work?.type ?? (databaseWork?.type === "STORY" ? "Stories" : databaseWork?.type === "POETRY" ? "Poetry" : "Songs");
+                return <Link key={saved.workId} href={type === "Stories" ? `/story/${saved.workId}` : `/work/${saved.workId}`} className="rounded-lg border border-[#30384e] bg-[#171b26] p-4 text-sm text-[#e8ecf4] hover:border-[#c8a96e]/60">{work?.title ?? databaseWork?.title}<span className="mt-1 block text-xs text-[#6f7890]">{type}</span></Link>;
               })}
             </div>
           ) : <p className="mt-5 text-sm text-[#6f7890]">Save stories, poetry, or songs to find them here.</p>}
@@ -110,10 +119,13 @@ async function ReaderProfileContent() {
             <div className="mt-5 divide-y divide-[#252d40]">
               {user.readingProgress.map((item) => {
                 const work = works.find((candidate) => candidate.id === item.workId);
-                if (!work) return null;
-                const href = work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`;
-                const status = work.type === "Stories"
-                  ? `${item.chaptersRead} of ${item.totalChapters ?? work.chapters} chapters`
+                const databaseWork = databaseWorkMap.get(item.workId);
+                if (!work && !databaseWork) return null;
+                const type = work?.type ?? (databaseWork?.type === "STORY" ? "Stories" : databaseWork?.type === "POETRY" ? "Poetry" : "Songs");
+                const title = work?.title ?? databaseWork?.title;
+                const href = type === "Stories" ? `/story/${item.workId}` : `/work/${item.workId}`;
+                const status = type === "Stories"
+                  ? `${item.chaptersRead} of ${item.totalChapters ?? "?"} chapters`
                   : item.completed ? "Marked as read" : "In progress";
                 return (
                   <Link key={item.workId} href={href} className="flex min-h-16 items-center gap-4 py-4 hover:text-[#c8a96e]">
@@ -121,7 +133,7 @@ async function ReaderProfileContent() {
                       {item.completed ? "✓" : "•"}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-sinhala text-sm text-[#e8ecf4]">{work.title}</span>
+                      <span className="block truncate font-sinhala text-sm text-[#e8ecf4]">{title}</span>
                       <span className="mt-1 block text-xs text-[#6f7890]">{status}</span>
                     </span>
                     <span className="text-[#6f7890]">→</span>
