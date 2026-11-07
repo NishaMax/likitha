@@ -4,6 +4,7 @@ import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import { works } from "@/lib/stories";
 
 const dashboardCopy = {
   READER: {
@@ -45,6 +46,18 @@ export default async function DashboardContent() {
       followersCount: true,
       likesReceived: true,
       readsCount: true,
+      readingProgress: {
+        orderBy: { lastReadAt: "desc" },
+        take: 8,
+        select: {
+          workId: true,
+          workType: true,
+          chaptersRead: true,
+          totalChapters: true,
+          completed: true,
+          lastReadAt: true,
+        },
+      },
     },
   });
   if (!user) redirect("/auth?mode=login");
@@ -53,6 +66,11 @@ export default async function DashboardContent() {
   const role = user.role;
   const copy = dashboardCopy[role];
   const displayName = user.displayName;
+  const readerProgress = user.readingProgress;
+  const storiesCompleted = readerProgress.filter((item) => item.workType === "STORY" && item.completed).length;
+  const poetryRead = readerProgress.filter((item) => item.workType === "POETRY" && item.completed).length;
+  const songsRead = readerProgress.filter((item) => item.workType === "SONG" && item.completed).length;
+  const chaptersRead = readerProgress.reduce((total, item) => total + item.chaptersRead, 0);
 
   return (
     <>
@@ -106,9 +124,9 @@ export default async function DashboardContent() {
                 ["03", "Reads", String(user.readsCount)],
               ]
             : [
-                ["01", "Stories saved", "Your collection"],
-                ["02", "Chapters read", "Your activity"],
-                ["03", "Coming soon", "More for you"],
+                ["01", "Stories completed", String(storiesCompleted)],
+                ["02", "Poetry read", String(poetryRead)],
+                ["03", "Songs read", String(songsRead)],
               ]).map(([number, title, label]) => (
             <div key={number} className="rounded-xl border border-[#252d40] bg-[#12151e] p-5">
               <span className="font-mono text-xs text-[#c8a96e]">{number}</span>
@@ -117,6 +135,43 @@ export default async function DashboardContent() {
             </div>
           ))}
         </div>
+        {role === "READER" && (
+          <div className="mt-8 rounded-2xl border border-[#252d40] bg-[#12151e] p-6">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Your reading profile</p>
+                <h2 className="mt-3 font-serif text-2xl text-[#e8ecf4]">Recently read</h2>
+              </div>
+              <p className="text-sm text-[#6f7890]">{chaptersRead} chapters read</p>
+            </div>
+            {readerProgress.length > 0 ? (
+              <div className="mt-5 divide-y divide-[#252d40]">
+                {readerProgress.map((item) => {
+                  const work = works.find((candidate) => candidate.id === item.workId);
+                  if (!work) return null;
+                  const href = work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`;
+                  const progressLabel = work.type === "Stories"
+                    ? `${item.chaptersRead} of ${item.totalChapters ?? work.chapters} chapters`
+                    : item.completed ? "Marked as read" : "In progress";
+                  return (
+                    <Link key={item.workId} href={href} className="flex min-h-16 items-center gap-4 py-4 hover:text-[#c8a96e]">
+                      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm ${item.completed ? "bg-[#86efac]/15 text-[#bbf7d0]" : "bg-[#1e2335] text-[#c8a96e]"}`}>
+                        {item.completed ? "✓" : "•"}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-sinhala text-sm text-[#e8ecf4]">{work.title}</span>
+                        <span className="mt-1 block text-xs text-[#6f7890]">{progressLabel}</span>
+                      </span>
+                      <span className="text-[#6f7890]">→</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-5 text-sm leading-7 text-[#6f7890]">Your reading history will appear here when you mark a story, poem, or song as read.</p>
+            )}
+          </div>
+        )}
       </section>
     </>
   );

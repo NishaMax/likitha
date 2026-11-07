@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
+import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
 
 export function generateStaticParams() {
   return stories.map((story) => ({
@@ -41,13 +42,19 @@ export default async function ChapterPage({ params }: ChapterPageProps) {
         <div className="mt-14 flex items-center justify-between border-t border-[#252d40] pt-6">
           <span className="text-sm text-[#6f7890]">Chapter {number} of {story.chapters}</span>
           {number < story.chapters ? (
-            <Link href={`/story/${story.id}/chapter/${number + 1}`} className="flex min-h-11 items-center rounded-lg bg-[#c8a96e] px-4 text-sm font-semibold text-[#0f1117]">
-              Next chapter →
-            </Link>
+            <div className="flex flex-col items-end gap-3">
+              <ReadingProgressButton workId={story.id} workType="STORY" chapterNumber={number} totalChapters={story.chapters} autoTrack />
+              <Link href={`/story/${story.id}/chapter/${number + 1}`} className="flex min-h-11 items-center rounded-lg bg-[#c8a96e] px-4 text-sm font-semibold text-[#0f1117]">
+                Next chapter →
+              </Link>
+            </div>
           ) : (
-            <Link href={`/story/${story.id}`} className="flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm font-semibold text-[#c8a96e]">
-              Back to story
-            </Link>
+            <div className="flex flex-col items-end gap-3">
+              <ReadingProgressButton workId={story.id} workType="STORY" chapterNumber={number} totalChapters={story.chapters} />
+              <Link href={`/story/${story.id}`} className="flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm font-semibold text-[#c8a96e]">
+                Back to story
+              </Link>
+            </div>
           )}
         </div>
       </article>

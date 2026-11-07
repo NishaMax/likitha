@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { contentTypes, genres, SortOption, works, type ContentTypeFilter, type Genre } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 
-function WorkCard({ work }: { work: (typeof works)[number] }) {
+function WorkCard({ work, isRead }: { work: (typeof works)[number]; isRead: boolean }) {
   const isStory = work.type === "Stories";
   return (
     <Link
@@ -14,6 +14,7 @@ function WorkCard({ work }: { work: (typeof works)[number] }) {
     >
       <div className={`flex h-48 items-end rounded-xl bg-gradient-to-br ${work.color} p-4 sm:h-56`}>
         <div>
+          {isRead && <span className="mb-2 block w-fit rounded-full bg-[#86efac]/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[.15em] text-[#bbf7d0]">Read</span>}
           <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
             {work.type === "Stories" ? "Story" : work.type === "Poetry" ? "Poetry" : "Song"}
           </span>
@@ -39,6 +40,23 @@ export default function BrowsePage() {
   const [selectedType, setSelectedType] = useState<ContentTypeFilter>("All");
   const [selectedGenre, setSelectedGenre] = useState<Genre>("All genres");
   const [sort, setSort] = useState<SortOption>("Trending");
+  const [readWorkIds, setReadWorkIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/reading-progress")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const body = await response.json() as { progress?: Array<{ workId: string; completed: boolean }> };
+        if (active) setReadWorkIds(new Set((body.progress ?? []).filter((item) => item.completed).map((item) => item.workId)));
+      })
+      .catch(() => {
+        // Signed-out visitors can browse without reading history.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const filteredWorks = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -139,7 +157,7 @@ export default function BrowsePage() {
 
           {filteredWorks.length > 0 ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredWorks.map((work) => <WorkCard key={work.id} work={work} />)}
+              {filteredWorks.map((work) => <WorkCard key={work.id} work={work} isRead={readWorkIds.has(work.id)} />)}
             </div>
           ) : (
             <div className="mt-6 rounded-2xl border border-dashed border-[#30384e] px-5 py-16 text-center">

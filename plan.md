@@ -63,6 +63,8 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 3. Open a story page and read approved chapters.
 4. Register or sign in to like, comment, and follow writers.
 5. Receive future notifications when followed writers publish chapters.
+6. Track story chapter progress and mark poetry or songs as read.
+7. Review completed works, chapter counts, and recent reading activity from the reader profile.
 
 ### Writer journey
 

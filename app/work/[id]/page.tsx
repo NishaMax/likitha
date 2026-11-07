@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { works } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
+import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -48,9 +49,12 @@ export default async function WorkPage({ params }: WorkPageProps) {
             මෙම {work.type === "Poetry" ? "කවිය" : "ගී පදය"} ඉදිරියේදී සම්පූර්ණයෙන් කියවීමට හැකි වේ.
           </p>
         </div>
-        <Link href="/browse" className="mt-8 inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#c8a96e] hover:border-[#c8a96e]">
-          ← Back to discover
-        </Link>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <ReadingProgressButton workId={work.id} workType={work.type === "Poetry" ? "POETRY" : "SONG"} />
+          <Link href="/browse" className="inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#c8a96e] hover:border-[#c8a96e]">
+            ← Back to discover
+          </Link>
+        </div>
       </article>
     </main>
   );
