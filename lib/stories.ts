@@ -24,6 +24,7 @@ export type Work = {
   genre: Exclude<Genre, "All genres">;
   readers: string;
   description: string;
+  content?: string | null;
   color: string;
   featured?: boolean;
   chapters?: number;

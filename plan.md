@@ -61,10 +61,11 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 1. Visit the homepage without signing in.
 2. Browse featured, trending, new, and genre-filtered stories.
 3. Open a story page and read approved chapters.
-4. Register or sign in to like, comment, and follow writers.
-5. Receive future notifications when followed writers publish chapters.
-6. Track story chapter progress and mark poetry or songs as read.
-7. Review completed works, chapter counts, and recent reading activity from the reader profile.
+4. See approved writer submissions in public discovery.
+5. Register or sign in to like, comment, and follow writers.
+6. Receive future notifications when followed writers publish chapters.
+7. Track story chapter progress and mark poetry or songs as read.
+8. Review completed works, chapter counts, and recent reading activity from the reader profile.
 
 ### Writer journey
 

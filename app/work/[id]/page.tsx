@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { works } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
+import { prisma } from "@/lib/prisma";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -14,7 +15,26 @@ export function generateStaticParams() {
 
 export default async function WorkPage({ params }: WorkPageProps) {
   const { id } = await params;
-  const work = works.find((item) => item.id === id && item.type !== "Stories");
+  const sampleWork = works.find((item) => item.id === id && item.type !== "Stories");
+  const databaseWork = sampleWork ? null : await prisma.work.findFirst({
+    where: { id, status: "APPROVED", type: { in: ["POETRY", "SONG"] } },
+    select: {
+      id: true,
+      type: true,
+      title: true,
+      description: true,
+      genre: true,
+      content: true,
+      author: { select: { displayName: true } },
+    },
+  });
+  const work = sampleWork ?? (databaseWork ? {
+    ...databaseWork,
+    type: databaseWork.type === "POETRY" ? "Poetry" as const : "Songs" as const,
+    author: databaseWork.author.displayName,
+    readers: "New",
+    color: databaseWork.type === "POETRY" ? "from-[#4c4a70] via-[#34344f] to-[#1b202c]" : "from-[#6d4b68] via-[#403149] to-[#1d202d]",
+  } : null);
 
   if (!work) notFound();
 
@@ -46,7 +66,7 @@ export default async function WorkPage({ params }: WorkPageProps) {
         <div className="mt-10 rounded-2xl border border-[#252d40] bg-[#171b26] p-6 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">{label}</p>
           <p className="mt-5 whitespace-pre-line font-sinhala text-base leading-10 text-[#e8ecf4]">
-            මෙම {work.type === "Poetry" ? "කවිය" : "ගී පදය"} ඉදිරියේදී සම්පූර්ණයෙන් කියවීමට හැකි වේ.
+            {work.content || `මෙම ${work.type === "Poetry" ? "කවිය" : "ගී පදය"} ඉදිරියේදී සම්පූර්ණයෙන් කියවීමට හැකි වේ.`}
           </p>
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-3">

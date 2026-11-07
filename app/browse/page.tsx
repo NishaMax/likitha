@@ -41,6 +41,23 @@ export default function BrowsePage() {
   const [selectedGenre, setSelectedGenre] = useState<Genre>("All genres");
   const [sort, setSort] = useState<SortOption>("Trending");
   const [readWorkIds, setReadWorkIds] = useState<Set<string>>(new Set());
+  const [allWorks, setAllWorks] = useState(works);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/public/works")
+      .then(async (response) => {
+        if (!response.ok) return;
+        const body = await response.json() as { works?: typeof works };
+        if (active && body.works) setAllWorks([...works, ...body.works]);
+      })
+      .catch(() => {
+        // Sample works remain available if the public database request fails.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -60,7 +77,7 @@ export default function BrowsePage() {
 
   const filteredWorks = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    const result = works.filter((work) => {
+    const result = allWorks.filter((work) => {
       const matchesType = selectedType === "All" || work.type === selectedType;
       const matchesGenre = selectedGenre === "All genres" || work.genre === selectedGenre;
       const matchesQuery =
@@ -74,7 +91,7 @@ export default function BrowsePage() {
     if (sort === "Newest") return [...result].reverse();
     if (sort === "Most read") return [...result].sort((a, b) => b.readers.localeCompare(a.readers));
     return result;
-  }, [query, selectedGenre, selectedType, sort]);
+  }, [allWorks, query, selectedGenre, selectedType, sort]);
 
   return (
     <main className="min-h-screen">
