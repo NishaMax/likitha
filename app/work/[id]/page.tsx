@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { works } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
@@ -7,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
 import ViewTracker from "@/components/engagement/ViewTracker";
+import { connection } from "next/server";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -16,7 +18,16 @@ export function generateStaticParams() {
   return works.filter((work) => work.type !== "Stories").map((work) => ({ id: work.id }));
 }
 
-export default async function WorkPage({ params }: WorkPageProps) {
+export default function WorkPage({ params }: WorkPageProps) {
+  return (
+    <Suspense fallback={<main className="min-h-screen" />}>
+      <WorkPageContent params={params} />
+    </Suspense>
+  );
+}
+
+async function WorkPageContent({ params }: WorkPageProps) {
+  await connection();
   const { id } = await params;
   const sampleWork = works.find((item) => item.id === id && item.type !== "Stories");
   const databaseWork = sampleWork ? null : await prisma.work.findFirst({

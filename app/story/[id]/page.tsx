@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
 import ViewTracker from "@/components/engagement/ViewTracker";
 import { prisma } from "@/lib/prisma";
+import { connection } from "next/server";
 
 export function generateStaticParams() {
   return stories.map((story) => ({ id: story.id }));
@@ -23,7 +25,16 @@ const chapterPreviews = [
   { number: 5, title: "අලුත් ආරම්භයක්", date: "2 weeks ago" },
 ];
 
-export default async function StoryPage({ params }: StoryPageProps) {
+export default function StoryPage({ params }: StoryPageProps) {
+  return (
+    <Suspense fallback={<main className="min-h-screen" />}>
+      <StoryPageContent params={params} />
+    </Suspense>
+  );
+}
+
+async function StoryPageContent({ params }: StoryPageProps) {
+  await connection();
   const { id } = await params;
   const sampleStory = stories.find((item) => item.id === id);
   const databaseStory = sampleStory ? null : await prisma.work.findFirst({

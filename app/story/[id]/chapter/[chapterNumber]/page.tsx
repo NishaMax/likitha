@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
 import { prisma } from "@/lib/prisma";
+import { connection } from "next/server";
 
 export function generateStaticParams() {
   return stories.map((story) => ({
@@ -16,7 +18,16 @@ type ChapterPageProps = {
   params: Promise<{ id: string; chapterNumber: string }>;
 };
 
-export default async function ChapterPage({ params }: ChapterPageProps) {
+export default function ChapterPage({ params }: ChapterPageProps) {
+  return (
+    <Suspense fallback={<main className="min-h-screen" />}>
+      <ChapterPageContent params={params} />
+    </Suspense>
+  );
+}
+
+async function ChapterPageContent({ params }: ChapterPageProps) {
+  await connection();
   const { id, chapterNumber } = await params;
   const sampleStory = stories.find((item) => item.id === id);
   const number = Number(chapterNumber);
