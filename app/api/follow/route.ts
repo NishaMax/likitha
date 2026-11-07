@@ -27,10 +27,11 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid writer." }, { status: 400 });
   const [user, writer] = await Promise.all([
-    prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, displayName: true } }),
+    prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, displayName: true, isBanned: true } }),
     prisma.user.findUnique({ where: { username: parsed.data.username }, select: { id: true } }),
   ]);
-  if (!user || !writer) return NextResponse.json({ error: "Writer not found." }, { status: 404 });
+  if (!user || user.isBanned) return NextResponse.json({ error: "You cannot follow writers right now." }, { status: 403 });
+  if (!writer) return NextResponse.json({ error: "Writer not found." }, { status: 404 });
   if (user.id === writer.id) return NextResponse.json({ error: "You cannot follow yourself." }, { status: 400 });
   const existing = await prisma.follow.findUnique({ where: { followerId_followingId: { followerId: user.id, followingId: writer.id } } });
   if (existing) {

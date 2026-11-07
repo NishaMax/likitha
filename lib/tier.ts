@@ -1,20 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma, WriterTier } from "@prisma/client";
-
-const tierRank: Record<WriterTier, number> = {
-  BRONZE: 0,
-  SILVER: 1,
-  GOLD: 2,
-  DIAMOND: 3,
-  FEATURED: 4,
-};
-
-export function calculateTier(score: number): Exclude<WriterTier, "FEATURED"> {
-  if (score >= 2000) return "DIAMOND";
-  if (score >= 500) return "GOLD";
-  if (score >= 100) return "SILVER";
-  return "BRONZE";
-}
+import { Prisma } from "@prisma/client";
+import { calculateTier, canUpgradeTier } from "@/lib/tier-calculation";
+export { calculateTier } from "@/lib/tier-calculation";
 
 export async function addTierScore(userId: string, points: number, tx: Prisma.TransactionClient | typeof prisma = prisma) {
   if (!Number.isInteger(points) || points === 0) throw new Error("Tier points must be a non-zero integer.");
@@ -25,7 +12,7 @@ export async function addTierScore(userId: string, points: number, tx: Prisma.Tr
     select: { tier: true, tierScore: true },
   });
   const calculatedTier = calculateTier(Math.max(0, user.tierScore));
-  if (user.tier !== "FEATURED" && tierRank[calculatedTier] > tierRank[user.tier]) {
+  if (canUpgradeTier(user.tier, user.tierScore)) {
     await tx.user.update({ where: { id: userId }, data: { tier: calculatedTier } });
   }
   return { ...user, calculatedTier };
@@ -64,7 +51,7 @@ export async function recordStoryView(authorId: string, workId: string, sessionI
     await tx.user.update({ where: { id: authorId }, data: { tierScore: { increment: 1 }, readsCount: { increment: 1 } } });
     const user = await tx.user.findUniqueOrThrow({ where: { id: authorId }, select: { tier: true, tierScore: true } });
     const calculatedTier = calculateTier(Math.max(0, user.tierScore));
-    if (user.tier !== "FEATURED" && tierRank[calculatedTier] > tierRank[user.tier]) {
+    if (canUpgradeTier(user.tier, user.tierScore)) {
       await tx.user.update({ where: { id: authorId }, data: { tier: calculatedTier } });
     }
     return { recorded: true };

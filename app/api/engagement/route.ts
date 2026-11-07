@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardTierEvent, removeTierEvent } from "@/lib/tier";
 import { createNotification } from "@/lib/notifications";
+import { works } from "@/lib/stories";
 
 const schema = z.object({
   action: z.enum(["like", "save"]),
@@ -13,7 +14,7 @@ const schema = z.object({
 async function currentUser() {
   const session = await auth();
   if (!session?.user?.email) return null;
-  return prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true } });
+  return prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, isBanned: true } }).then((user) => user?.isBanned ? null : user);
 }
 
 export async function GET(request: Request) {
@@ -34,9 +35,13 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid engagement request." }, { status: 400 });
   const { action, workId } = parsed.data;
+  const publishedWork = await prisma.work.findFirst({ where: { id: workId, status: "APPROVED" }, select: { authorId: true, type: true } });
+  if (!publishedWork && !works.some((item) => item.id === workId)) {
+    return NextResponse.json({ error: "Published work not found." }, { status: 404 });
+  }
   if (action === "like") {
     const existing = await prisma.workLike.findUnique({ where: { userId_workId: { userId: user.id, workId } } });
-    const work = await prisma.work.findUnique({ where: { id: workId }, select: { authorId: true, type: true } });
+    const work = publishedWork;
     if (existing) {
       await prisma.$transaction(async (tx) => {
         await tx.workLike.delete({ where: { id: existing.id } });
