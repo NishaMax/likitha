@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Sinhala, Playfair_Display } from "next/font/google";
+import AmbientBackground from "@/components/visual/AmbientBackground";
 import "./globals.css";
 
 const inter = Inter({
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="si" className={`${inter.variable} ${sinhala.variable} ${playfair.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <AmbientBackground />
+        {children}
+      </body>
     </html>
   );
 }

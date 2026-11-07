@@ -93,6 +93,8 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 
 Use a deep ink-and-parchment literary aesthetic: dark backgrounds, warm gold accents, comfortable Sinhala typography, and inviting story cards. Launch as dark-only; consider light mode in a later release.
 
+The background may include restrained ambient motion: a few low-opacity gold/umber glows and firefly-like points animated with CSS `transform` and `opacity` only. Keep the effect behind content, avoid continuous JavaScript animation, and honor `prefers-reduced-motion` so the mobile reading experience remains smooth and calm.
+
 ### Color palette
 
 | Token | Value | Use |

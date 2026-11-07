@@ -23,6 +23,109 @@ body {
   font-family: var(--font-inter), sans-serif;
 }
 
+.ambient-background {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 75% 12%, rgb(200 169 110 / 0.045), transparent 28rem),
+    radial-gradient(circle at 12% 80%, rgb(77 55 45 / 0.06), transparent 24rem);
+}
+
+body > :not(.ambient-background) {
+  position: relative;
+  z-index: 1;
+}
+
+.ambient-background__glow,
+.ambient-background__ember {
+  position: absolute;
+  display: block;
+  will-change: transform, opacity;
+}
+
+.ambient-background__glow {
+  width: 18rem;
+  height: 18rem;
+  border-radius: 9999px;
+  opacity: 0.28;
+  filter: blur(5rem);
+  background: #c8a96e;
+  animation: ambient-drift 24s ease-in-out infinite alternate;
+}
+
+.ambient-background__glow--one {
+  top: 8%;
+  right: -8rem;
+}
+
+.ambient-background__glow--two {
+  bottom: 4%;
+  left: -10rem;
+  opacity: 0.16;
+  background: #74523e;
+  animation-delay: -10s;
+  animation-duration: 30s;
+}
+
+.ambient-background__ember {
+  width: 0.3rem;
+  height: 0.3rem;
+  border-radius: 9999px;
+  background: #c8a96e;
+  box-shadow: 0 0 1rem rgb(200 169 110 / 0.55);
+  animation: ambient-float 12s ease-in-out infinite;
+}
+
+.ambient-background__ember--one {
+  top: 28%;
+  left: 18%;
+}
+
+.ambient-background__ember--two {
+  top: 62%;
+  right: 16%;
+  animation-delay: -4s;
+  animation-duration: 15s;
+}
+
+.ambient-background__ember--three {
+  top: 82%;
+  left: 66%;
+  animation-delay: -8s;
+  animation-duration: 18s;
+}
+
+@keyframes ambient-drift {
+  from {
+    transform: translate3d(-1rem, 0, 0) scale(0.94);
+  }
+  to {
+    transform: translate3d(1rem, 1.5rem, 0) scale(1.06);
+  }
+}
+
+@keyframes ambient-float {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate3d(0.8rem, -1.5rem, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-background__glow,
+  .ambient-background__ember {
+    animation: none;
+  }
+}
+
 ::selection {
   background: #c8a96e;
   color: #0f1117;
