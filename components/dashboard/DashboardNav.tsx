@@ -9,7 +9,7 @@ const linksByRole = {
   READER: [
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Browse" },
-    { href: "/settings/profile", label: "Profile" },
+    { href: "/profile", label: "Profile" },
   ],
   WRITER: [
     { href: "/dashboard", label: "Home" },
