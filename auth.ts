@@ -92,14 +92,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token, user }) {
-      const sessionRole = token?.role ?? user?.role;
-
-      if (
-        session.user &&
-        (sessionRole === "READER" || sessionRole === "WRITER" || sessionRole === "ADMIN")
-      ) {
-        session.user.role = sessionRole;
-      } else if (session.user?.email) {
+      if (session.user?.email) {
         const databaseUser = await prisma.user.findUnique({
           where: { email: session.user.email.toLowerCase() },
           select: { role: true, isBanned: true },
@@ -107,6 +100,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (databaseUser && !databaseUser.isBanned) {
           session.user.role = databaseUser.role;
+        }
+      } else {
+        const sessionRole = token?.role ?? user?.role;
+        if (session.user && (sessionRole === "READER" || sessionRole === "WRITER" || sessionRole === "ADMIN")) {
+          session.user.role = sessionRole;
         }
       }
 

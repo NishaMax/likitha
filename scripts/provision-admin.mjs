@@ -44,6 +44,7 @@ try {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     await prisma.user.update({ where: { id: existing.id }, data: { passwordHash, role: "ADMIN", isBanned: false, profileComplete: true } });
+    await prisma.session.deleteMany({ where: { userId: existing.id } });
   } else {
     const username = `admin-${crypto.randomUUID().slice(0, 8)}`;
     await prisma.user.create({ data: { email, username, displayName: "Likitha Admin", passwordHash, role: "ADMIN", isVerified: true, profileComplete: true } });
