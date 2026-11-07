@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { stories } from "@/lib/stories";
@@ -37,6 +38,9 @@ async function ChapterPageContent({ params }: ChapterPageProps) {
       chapterNo: true,
       title: true,
       content: true,
+      imageUrl: true,
+      imageColor: true,
+      imageTemplate: true,
       work: { select: { id: true, title: true, author: { select: { displayName: true } }, chapters: { where: { status: "APPROVED" }, select: { chapterNo: true } } } },
     },
   });
@@ -54,6 +58,7 @@ async function ChapterPageContent({ params }: ChapterPageProps) {
             <h1 className="mt-5 font-sinhala text-3xl font-bold leading-relaxed text-[#e8ecf4] sm:text-4xl">{databaseChapter.title}</h1>
             <p className="mt-3 text-sm text-[#6f7890]">by {databaseChapter.work.author.displayName}</p>
           </div>
+          {databaseChapter.imageUrl && <Image src={databaseChapter.imageUrl} alt="" width={900} height={420} className="mt-8 max-h-[28rem] w-full rounded-2xl object-cover" unoptimized />}
           <div className="mt-10 whitespace-pre-line font-sinhala text-lg leading-[2] text-[#d2d7e2]">{databaseChapter.content}</div>
           <div className="mt-14 flex items-center justify-between border-t border-[#252d40] pt-6">
             <span className="text-sm text-[#6f7890]">Chapter {number} of {totalChapters}</span>

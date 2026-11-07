@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isArtworkTemplate } from "@/lib/artwork";
+
+const imageDataUrl = z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(1_400_000);
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
 const workSchema = z.object({
   type: z.enum(["STORY", "POETRY", "SONG"]),
@@ -9,6 +13,9 @@ const workSchema = z.object({
   description: z.string().trim().min(10).max(1000),
   genre: z.string().trim().min(2).max(40),
   content: z.string().trim().max(100_000).optional(),
+  coverImageUrl: imageDataUrl.nullable().optional(),
+  coverColor: hexColor.optional(),
+  coverTemplate: z.string().refine(isArtworkTemplate).optional(),
   submit: z.boolean().optional(),
 });
 
@@ -53,6 +60,9 @@ export async function POST(request: Request) {
       description: parsed.data.description,
       genre: parsed.data.genre,
       content: parsed.data.content || null,
+      coverImageUrl: parsed.data.coverImageUrl ?? null,
+      coverColor: parsed.data.coverColor ?? "#334c50",
+      coverTemplate: parsed.data.coverTemplate ?? "midnight",
       status,
       submittedAt: parsed.data.submit ? new Date() : null,
     },

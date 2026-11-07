@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { stories } from "@/lib/stories";
@@ -8,6 +9,7 @@ import CommentsSection from "@/components/engagement/CommentsSection";
 import ViewTracker from "@/components/engagement/ViewTracker";
 import { prisma } from "@/lib/prisma";
 import { connection } from "next/server";
+import { getArtworkTemplateClass } from "@/lib/artwork";
 
 export function generateStaticParams() {
   return stories.map((story) => ({ id: story.id }));
@@ -44,6 +46,9 @@ async function StoryPageContent({ params }: StoryPageProps) {
       title: true,
       description: true,
       genre: true,
+      coverImageUrl: true,
+      coverColor: true,
+      coverTemplate: true,
       author: { select: { displayName: true, username: true } },
       chapters: {
         where: { status: "APPROVED" },
@@ -66,6 +71,9 @@ async function StoryPageContent({ params }: StoryPageProps) {
       title: chapter.title,
       date: chapter.publishedAt ? new Date(chapter.publishedAt).toLocaleDateString() : "Published",
     })),
+    coverImageUrl: databaseStory.coverImageUrl,
+    coverColor: databaseStory.coverColor,
+    coverTemplate: databaseStory.coverTemplate,
   } : null);
 
   if (!story) notFound();
@@ -85,7 +93,8 @@ async function StoryPageContent({ params }: StoryPageProps) {
       <section className="relative overflow-hidden border-y border-[#202638] bg-[#12151e]">
         <div className={`absolute inset-0 bg-gradient-to-br ${story.color} opacity-20`} />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[260px_1fr] lg:items-end lg:gap-12 lg:px-10">
-          <div className={`flex h-72 items-end rounded-2xl bg-gradient-to-br ${story.color} p-6 shadow-2xl shadow-black/30 sm:h-96`}>
+          <div className={`relative flex h-72 items-end overflow-hidden rounded-2xl bg-gradient-to-br ${"coverTemplate" in story ? getArtworkTemplateClass(story.coverTemplate) : story.color} p-6 shadow-2xl shadow-black/30 sm:h-96`} style={{ backgroundColor: "coverColor" in story ? story.coverColor : undefined }}>
+            {"coverImageUrl" in story && story.coverImageUrl && <Image src={story.coverImageUrl} alt="" fill className="object-cover" unoptimized />}
             <div>
               <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
                 {story.genre}

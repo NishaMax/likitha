@@ -125,6 +125,9 @@ model Work {
   description   String            @db.Text
   genre         String
   content       String?           @db.Text
+  coverImageUrl String?           @db.Text
+  coverColor    String            @default("#334c50")
+  coverTemplate String            @default("midnight")
   status        PublicationStatus @default(DRAFT)
   submittedAt   DateTime?
   publishedAt   DateTime?
@@ -146,6 +149,9 @@ model Chapter {
   chapterNo   Int
   title       String
   content     String            @db.Text
+  imageUrl    String?           @db.Text
+  imageColor  String            @default("#334c50")
+  imageTemplate String          @default("midnight")
   status      PublicationStatus @default(DRAFT)
   submittedAt DateTime?
   publishedAt DateTime?

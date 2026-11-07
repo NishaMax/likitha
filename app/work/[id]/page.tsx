@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { works } from "@/lib/stories";
@@ -9,6 +10,7 @@ import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
 import ViewTracker from "@/components/engagement/ViewTracker";
 import { connection } from "next/server";
+import { getArtworkTemplateClass } from "@/lib/artwork";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -39,6 +41,9 @@ async function WorkPageContent({ params }: WorkPageProps) {
       description: true,
       genre: true,
       content: true,
+      coverImageUrl: true,
+      coverColor: true,
+      coverTemplate: true,
       author: { select: { displayName: true } },
     },
   });
@@ -61,7 +66,8 @@ async function WorkPageContent({ params }: WorkPageProps) {
       <section className="relative overflow-hidden border-y border-[#202638] bg-[#12151e]">
         <div className={`absolute inset-0 bg-gradient-to-br ${work.color} opacity-20`} />
         <div className="relative mx-auto max-w-4xl px-5 py-12 sm:px-8 sm:py-20">
-          <div className={`flex min-h-72 items-end rounded-2xl bg-gradient-to-br ${work.color} p-6 sm:min-h-96 sm:p-10`}>
+          <div className={`relative flex min-h-72 items-end overflow-hidden rounded-2xl bg-gradient-to-br ${"coverTemplate" in work ? getArtworkTemplateClass(work.coverTemplate) : work.color} p-6 sm:min-h-96 sm:p-10`} style={{ backgroundColor: "coverColor" in work ? work.coverColor : undefined }}>
+            {"coverImageUrl" in work && work.coverImageUrl && <Image src={work.coverImageUrl} alt="" fill className="object-cover" unoptimized />}
             <div>
               <span className="rounded-full bg-black/25 px-3 py-1.5 text-xs uppercase tracking-[.15em] text-[#e9d8b7]">{label}</span>
               <h1 className="mt-5 max-w-2xl font-sinhala text-4xl font-bold leading-relaxed text-[#f4ead8] sm:text-5xl">{work.title}</h1>

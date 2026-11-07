@@ -27,6 +27,7 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 4. Provide writer engagement metrics and an automatic tier system.
 5. Deliver a responsive, accessible, dark-first reading experience.
 6. Launch with a manageable free infrastructure stack and a clear path to `likitha.lk`.
+7. Let writers personalize works and chapters with optional artwork, fallback colors, and literary visual templates.
 
 ### Non-goals for MVP
 
@@ -37,6 +38,7 @@ All user-facing branding, metadata, emails, page titles, prompts, seed data, and
 - Automatic admin account applications.
 - Automatic tier downgrades.
 - Light mode.
+- Advanced image editing, cropping, and external media storage before the first MVP media upload flow is proven.
 - Full social login implementation (leave OAuth as a future extension).
 - Complex editorial scheduling. Manual publishing is sufficient for MVP even though scheduled releases may be added later.
 
@@ -161,6 +163,15 @@ Use a deep ink-and-parchment literary aesthetic: dark backgrounds, warm gold acc
 | Upstash Redis | Rate limiting and cache | Add before public launch or when traffic requires it |
 
 Do not hard-code credentials. Keep secrets in local environment files excluded from Git and in deployment environment variables.
+
+### Artwork MVP
+
+- Readers and writers may upload a profile picture from profile settings.
+- Writers may upload one optional cover image for each work and one optional image for each chapter.
+- Supported MVP artwork formats are JPG, PNG, and WebP, with a 1 MB client and server validation limit.
+- When no image is uploaded, the writer can choose a built-in literary template and fallback color.
+- Uploaded data URLs are an MVP implementation for local development. Before public launch, move artwork to Cloudflare R2 or equivalent object storage and store only stable URLs in PostgreSQL.
+- Artwork must preserve the mobile-first layout: cover images use fixed aspect-ratio containers, `object-cover`, descriptive empty states, and no content should depend on an image being present.
 
 ## 7. Proposed repository structure
 
