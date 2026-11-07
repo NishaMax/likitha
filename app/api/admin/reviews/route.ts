@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PublicationStatus } from "@prisma/client";
+import { awardTierEvent } from "@/lib/tier";
 
 const reviewSchema = z.object({
   entityType: z.enum(["work", "chapter"]),
@@ -70,11 +71,16 @@ export async function PATCH(request: Request) {
     });
     if (result.count === 0) return NextResponse.json({ error: "Pending work not found." }, { status: 404 });
   } else {
-    const result = await prisma.chapter.updateMany({
+    const chapter = await prisma.chapter.findFirst({
+      where: { id: parsed.data.entityId, status: "PENDING" },
+      select: { id: true, work: { select: { authorId: true } } },
+    });
+    const result = chapter ? await prisma.chapter.updateMany({
       where: { id: parsed.data.entityId, status: "PENDING" },
       data: reviewData,
-    });
+    }) : { count: 0 };
     if (result.count === 0) return NextResponse.json({ error: "Pending chapter not found." }, { status: 404 });
+    if (status === "APPROVED" && chapter) await awardTierEvent(chapter.work.authorId, `CHAPTER_APPROVED:${chapter.id}`, "CHAPTER_APPROVED", 2);
   }
 
   return NextResponse.json({ ok: true });

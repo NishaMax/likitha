@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import { works } from "@/lib/stories";
+import TierBadge from "@/components/profile/TierBadge";
 
 const dashboardCopy = {
   READER: {
@@ -46,6 +47,8 @@ export default async function DashboardContent() {
       followersCount: true,
       likesReceived: true,
       readsCount: true,
+      tier: true,
+      tierScore: true,
       readingProgress: {
         orderBy: { lastReadAt: "desc" },
         take: 8,
@@ -135,6 +138,20 @@ export default async function DashboardContent() {
             </div>
           ))}
         </div>
+        {role === "WRITER" && (
+          <div className="mt-6 rounded-2xl border border-[#252d40] bg-[#12151e] p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Writer tier</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <TierBadge tier={user.tier} />
+                  <span className="text-sm text-[#9ba5c0]">{user.tierScore} points</span>
+                </div>
+              </div>
+              <p className="max-w-xs text-right text-xs leading-6 text-[#6f7890]">Earn points through approved chapters and reader engagement.</p>
+            </div>
+          </div>
+        )}
         {role === "READER" && (
           <div className="mt-8 rounded-2xl border border-[#252d40] bg-[#12151e] p-6">
             <div className="flex flex-wrap items-end justify-between gap-3">

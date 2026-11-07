@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { awardTierEvent } from "@/lib/tier";
 
 const progressSchema = z.object({
   workId: z.string().trim().min(1).max(120),
@@ -79,6 +80,13 @@ export async function POST(request: Request) {
       completed,
     },
   });
+
+  if (completed && data.workType === "STORY") {
+    const work = await prisma.work.findUnique({ where: { id: data.workId }, select: { authorId: true } });
+    if (work && work.authorId !== user.id) {
+      await awardTierEvent(work.authorId, `COMPLETED:${user.id}:${data.workId}`, "COMPLETED", 50);
+    }
+  }
 
   return NextResponse.json({ progress });
 }

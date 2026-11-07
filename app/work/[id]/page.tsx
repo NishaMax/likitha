@@ -6,6 +6,7 @@ import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
 import { prisma } from "@/lib/prisma";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
+import ViewTracker from "@/components/engagement/ViewTracker";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -44,6 +45,7 @@ export default async function WorkPage({ params }: WorkPageProps) {
 
   return (
     <main className="min-h-screen">
+      <ViewTracker workId={work.id} />
       <PublicNav />
       <section className="relative overflow-hidden border-y border-[#202638] bg-[#12151e]">
         <div className={`absolute inset-0 bg-gradient-to-br ${work.color} opacity-20`} />

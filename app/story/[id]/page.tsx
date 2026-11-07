@@ -4,6 +4,7 @@ import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
+import ViewTracker from "@/components/engagement/ViewTracker";
 
 export function generateStaticParams() {
   return stories.map((story) => ({ id: story.id }));
@@ -29,6 +30,7 @@ export default async function StoryPage({ params }: StoryPageProps) {
 
   return (
     <main className="min-h-screen">
+      <ViewTracker workId={story.id} />
       <PublicNav />
 
       <div className="mx-auto w-full max-w-6xl px-5 pt-6 sm:px-8 lg:px-10">

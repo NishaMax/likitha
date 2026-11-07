@@ -5,18 +5,11 @@ import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import PublicNav from "@/components/navigation/PublicNav";
 import FollowButton from "@/components/engagement/FollowButton";
+import TierBadge from "@/components/profile/TierBadge";
 
 type WriterPageProps = {
   params: Promise<{ username: string }>;
 };
-
-const tierLabels = {
-  BRONZE: "Bronze writer",
-  SILVER: "Silver writer",
-  GOLD: "Gold writer",
-  DIAMOND: "Diamond writer",
-  FEATURED: "Featured writer",
-} as const;
 
 export default function WriterPage({ params }: WriterPageProps) {
   return (
@@ -38,6 +31,7 @@ async function WriterProfileContent({ params }: WriterPageProps) {
       followersCount: true,
       likesReceived: true,
       readsCount: true,
+      tierScore: true,
     },
   });
 
@@ -54,7 +48,10 @@ async function WriterProfileContent({ params }: WriterPageProps) {
           <div>
             <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Writer profile</p>
             <h1 className="mt-3 font-serif text-4xl text-[#e8ecf4]">{writer.displayName}</h1>
-            <p className="mt-2 text-sm text-[#c8a96e]">{tierLabels[writer.tier]}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <TierBadge tier={writer.tier} />
+              <span className="text-xs text-[#6f7890]">{writer.tierScore} points</span>
+            </div>
             {writer.bio && <p className="mt-4 max-w-xl text-sm leading-7 text-[#9ba5c0]">{writer.bio}</p>}
             <div className="mt-5"><FollowButton username={username} /></div>
           </div>

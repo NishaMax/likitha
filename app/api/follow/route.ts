@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { awardTierEvent, removeTierEvent } from "@/lib/tier";
 
 const schema = z.object({ username: z.string().trim().min(1).max(120) });
 
@@ -33,8 +34,10 @@ export async function POST(request: Request) {
   const existing = await prisma.follow.findUnique({ where: { followerId_followingId: { followerId: user.id, followingId: writer.id } } });
   if (existing) {
     await prisma.$transaction([prisma.follow.delete({ where: { id: existing.id } }), prisma.user.update({ where: { id: writer.id }, data: { followersCount: { decrement: 1 } } })]);
+    await removeTierEvent(`FOLLOW:${user.id}:${writer.id}`);
   } else {
     await prisma.$transaction([prisma.follow.create({ data: { followerId: user.id, followingId: writer.id } }), prisma.user.update({ where: { id: writer.id }, data: { followersCount: { increment: 1 } } })]);
+    await awardTierEvent(writer.id, `FOLLOW:${user.id}:${writer.id}`, "FOLLOW", 10);
   }
   return GET(new Request(new URL(`/api/follow?username=${encodeURIComponent(parsed.data.username)}`, request.url)));
 }

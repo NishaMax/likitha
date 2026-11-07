@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { awardTierEvent } from "@/lib/tier";
 
 const schema = z.object({ workId: z.string().trim().min(1).max(120), content: z.string().trim().min(2).max(1000) });
 
@@ -24,6 +25,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Comment must be 2–1000 characters." }, { status: 400 });
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, isBanned: true } });
   if (!user || user.isBanned) return NextResponse.json({ error: "You cannot comment right now." }, { status: 403 });
+  const work = await prisma.work.findUnique({ where: { id: parsed.data.workId }, select: { authorId: true } });
   const comment = await prisma.comment.create({ data: { userId: user.id, workId: parsed.data.workId, content: parsed.data.content }, select: { id: true } });
+  if (work && work.authorId !== user.id) {
+    await awardTierEvent(work.authorId, `COMMENT:${user.id}:${parsed.data.workId}`, "COMMENT", 3);
+  }
   return NextResponse.json({ comment }, { status: 201 });
 }

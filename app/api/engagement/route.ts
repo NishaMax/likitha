@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { awardTierEvent, removeTierEvent } from "@/lib/tier";
 
 const schema = z.object({
   action: z.enum(["like", "save"]),
@@ -34,8 +35,24 @@ export async function POST(request: Request) {
   const { action, workId } = parsed.data;
   if (action === "like") {
     const existing = await prisma.workLike.findUnique({ where: { userId_workId: { userId: user.id, workId } } });
-    if (existing) await prisma.workLike.delete({ where: { id: existing.id } });
-    else await prisma.workLike.create({ data: { userId: user.id, workId } });
+    const work = await prisma.work.findUnique({ where: { id: workId }, select: { authorId: true } });
+    if (existing) {
+      await prisma.$transaction(async (tx) => {
+        await tx.workLike.delete({ where: { id: existing.id } });
+        if (work && work.authorId !== user.id) {
+          await tx.user.update({ where: { id: work.authorId }, data: { likesReceived: { decrement: 1 } } });
+        }
+      });
+      if (work && work.authorId !== user.id) await removeTierEvent(`LIKE:${user.id}:${workId}`);
+    } else {
+      await prisma.$transaction(async (tx) => {
+        await tx.workLike.create({ data: { userId: user.id, workId } });
+        if (work && work.authorId !== user.id) {
+          await tx.user.update({ where: { id: work.authorId }, data: { likesReceived: { increment: 1 } } });
+        }
+      });
+      if (work && work.authorId !== user.id) await awardTierEvent(work.authorId, `LIKE:${user.id}:${workId}`, "LIKE", 5);
+    }
   } else {
     const existing = await prisma.savedWork.findUnique({ where: { userId_workId: { userId: user.id, workId } } });
     if (existing) await prisma.savedWork.delete({ where: { id: existing.id } });
