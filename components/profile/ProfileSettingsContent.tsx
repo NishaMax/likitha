@@ -22,7 +22,7 @@ export default async function ProfileSettingsContent() {
         {user.role === "WRITER" ? (
           <WriterProfileForm initialName={user.displayName} initialBio={user.bio ?? ""} initialAvatarUrl={user.avatarUrl} />
         ) : (
-          <ProfileNameForm initialName={user.displayName} />
+          <ProfileNameForm initialName={user.displayName} initialAvatarUrl={user.avatarUrl} />
         )}
       </div>
     </section>
