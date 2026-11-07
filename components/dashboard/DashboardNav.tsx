@@ -10,18 +10,21 @@ const linksByRole = {
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Browse" },
     { href: "/profile", label: "Profile" },
+    { href: "/notifications", label: "Notifications" },
   ],
   WRITER: [
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Read stories" },
     { href: "/dashboard/works", label: "My works" },
     { href: "/settings/profile", label: "Profile" },
+    { href: "/notifications", label: "Notifications" },
   ],
   ADMIN: [
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Read stories" },
     { href: "/admin/reviews", label: "Review queue" },
     { href: "/settings/profile", label: "Profile" },
+    { href: "/notifications", label: "Notifications" },
   ],
 } as const;
 

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { PublicationStatus } from "@prisma/client";
 import { awardTierEvent } from "@/lib/tier";
+import { createNotification } from "@/lib/notifications";
 
 const reviewSchema = z.object({
   entityType: z.enum(["work", "chapter"]),
@@ -65,11 +66,13 @@ export async function PATCH(request: Request) {
   const reviewData = { status, reviewNote: parsed.data.note || null, reviewedAt: new Date(), ...(status === "APPROVED" ? { publishedAt: new Date() } : {}) };
 
   if (parsed.data.entityType === "work") {
-    const result = await prisma.work.updateMany({
+    const work = await prisma.work.findFirst({ where: { id: parsed.data.entityId, status: "PENDING" }, select: { authorId: true, type: true } });
+    const result = work ? await prisma.work.updateMany({
       where: { id: parsed.data.entityId, status: "PENDING" },
       data: reviewData,
-    });
+    }) : { count: 0 };
     if (result.count === 0) return NextResponse.json({ error: "Pending work not found." }, { status: 404 });
+    if (work) await createNotification(work.authorId, "REVIEW", `Your work was ${status === "APPROVED" ? "approved" : "rejected"}.`, "/dashboard/works");
   } else {
     const chapter = await prisma.chapter.findFirst({
       where: { id: parsed.data.entityId, status: "PENDING" },
@@ -81,6 +84,7 @@ export async function PATCH(request: Request) {
     }) : { count: 0 };
     if (result.count === 0) return NextResponse.json({ error: "Pending chapter not found." }, { status: 404 });
     if (status === "APPROVED" && chapter) await awardTierEvent(chapter.work.authorId, `CHAPTER_APPROVED:${chapter.id}`, "CHAPTER_APPROVED", 2);
+    if (chapter) await createNotification(chapter.work.authorId, "REVIEW", `Your chapter was ${status === "APPROVED" ? "approved" : "rejected"}.`, "/dashboard/works");
   }
 
   return NextResponse.json({ ok: true });

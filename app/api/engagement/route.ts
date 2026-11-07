@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardTierEvent, removeTierEvent } from "@/lib/tier";
+import { createNotification } from "@/lib/notifications";
 
 const schema = z.object({
   action: z.enum(["like", "save"]),
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
   const { action, workId } = parsed.data;
   if (action === "like") {
     const existing = await prisma.workLike.findUnique({ where: { userId_workId: { userId: user.id, workId } } });
-    const work = await prisma.work.findUnique({ where: { id: workId }, select: { authorId: true } });
+    const work = await prisma.work.findUnique({ where: { id: workId }, select: { authorId: true, type: true } });
     if (existing) {
       await prisma.$transaction(async (tx) => {
         await tx.workLike.delete({ where: { id: existing.id } });
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
         }
       });
       if (work && work.authorId !== user.id) await awardTierEvent(work.authorId, `LIKE:${user.id}:${workId}`, "LIKE", 5);
+      if (work && work.authorId !== user.id) await createNotification(work.authorId, "LIKE", "Someone liked your work.", work.type === "STORY" ? `/story/${workId}` : `/work/${workId}`);
     }
   } else {
     const existing = await prisma.savedWork.findUnique({ where: { userId_workId: { userId: user.id, workId } } });

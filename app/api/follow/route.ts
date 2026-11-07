@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardTierEvent, removeTierEvent } from "@/lib/tier";
+import { createNotification } from "@/lib/notifications";
 
 const schema = z.object({ username: z.string().trim().min(1).max(120) });
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid writer." }, { status: 400 });
   const [user, writer] = await Promise.all([
-    prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true } }),
+    prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, displayName: true } }),
     prisma.user.findUnique({ where: { username: parsed.data.username }, select: { id: true } }),
   ]);
   if (!user || !writer) return NextResponse.json({ error: "Writer not found." }, { status: 404 });
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
   } else {
     await prisma.$transaction([prisma.follow.create({ data: { followerId: user.id, followingId: writer.id } }), prisma.user.update({ where: { id: writer.id }, data: { followersCount: { increment: 1 } } })]);
     await awardTierEvent(writer.id, `FOLLOW:${user.id}:${writer.id}`, "FOLLOW", 10);
+    await createNotification(writer.id, "FOLLOW", `${user.displayName} started following you.`, `/writer/${parsed.data.username}`);
   }
   return GET(new Request(new URL(`/api/follow?username=${encodeURIComponent(parsed.data.username)}`, request.url)));
 }
