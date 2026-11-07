@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function AdminLoginForm() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const router = useRouter();
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -15,23 +13,14 @@ export default function AdminLoginForm() {
     setError("");
     try {
       const form = new FormData(event.currentTarget);
-      const result = await Promise.race([
-        signIn("credentials", {
-          email: String(form.get("email") ?? ""),
-          password: String(form.get("password") ?? ""),
-          role: "ADMIN",
-          redirect: false,
-        }),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 15000)),
-      ]);
-      if (!result || result.error) {
-        setError(!result ? "Sign-in timed out. Restart the dev server and try again." : "Admin email or password is incorrect.");
-        setBusy(false);
-        return;
-      }
-      router.push("/admin/reviews");
+      await signIn("credentials", {
+        email: String(form.get("email") ?? ""),
+        password: String(form.get("password") ?? ""),
+        role: "ADMIN",
+        callbackUrl: "/admin/reviews",
+      });
     } catch {
-      setError("Unable to reach the sign-in service. Restart the dev server and try again.");
+      setError("Admin email or password is incorrect.");
       setBusy(false);
     }
   }
