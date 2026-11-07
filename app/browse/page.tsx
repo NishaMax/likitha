@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { contentTypes, genres, SortOption, works, type ContentTypeFilter, type Genre } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 
-function WorkCard({ work, isRead }: { work: (typeof works)[number]; isRead: boolean }) {
+function WorkCard({ work, isRead }: { work: (typeof works)[number] & { likes?: number; comments?: number }; isRead: boolean }) {
   const isStory = work.type === "Stories";
   return (
     <Link
@@ -28,7 +28,7 @@ function WorkCard({ work, isRead }: { work: (typeof works)[number]; isRead: bool
         <p className="mt-2 line-clamp-2 font-sinhala text-sm leading-7 text-[#6f7890]">{work.description}</p>
         <div className="mt-4 flex items-center justify-between border-t border-[#252d40] pt-3 text-xs text-[#6f7890]">
           <span>{isStory ? `${work.chapters} chapters` : work.type === "Poetry" ? "Poem" : "Lyrics"}</span>
-          <span>{work.readers} reads</span>
+          <span>{work.likes ?? work.readers} {work.likes !== undefined ? "likes" : "reads"}</span>
         </div>
       </div>
     </Link>
