@@ -3,6 +3,8 @@ import { Inter, Noto_Sans_Sinhala, Playfair_Display } from "next/font/google";
 import AmbientBackground from "@/components/visual/AmbientBackground";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://likitha.lk";
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -20,9 +22,36 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Likitha — Where Sri Lanka's stories live",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Likitha — Where Sri Lanka's stories live",
+    template: "%s | Likitha",
+  },
   description:
     "Discover, read, and share Sinhala stories and novels from Sri Lanka.",
+  applicationName: "Likitha",
+  keywords: ["Sinhala stories", "Sri Lankan writers", "Sinhala novels", "Sinhala poetry", "Likitha"],
+  authors: [{ name: "Likitha" }],
+  creator: "Likitha",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    locale: "si_LK",
+    url: siteUrl,
+    siteName: "Likitha",
+    title: "Likitha — Where Sri Lanka's stories live",
+    description: "Discover, read, and share Sinhala stories and novels from Sri Lanka.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Likitha — Where Sri Lanka's stories live",
+    description: "Discover, read, and share Sinhala stories and novels from Sri Lanka.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -619,6 +619,8 @@ Tier benefits:
 - Seed 10–15 real beta stories with permission from writers.
 - Deploy to Vercel.
 - Purchase/configure `likitha.lk`, add DNS, TLS, redirects, and canonical host settings.
+- Deploy the frontend and backend together on Vercel with Supabase as the production database.
+- Publish `robots.txt`, `sitemap.xml`, canonical metadata, and Open Graph/Twitter metadata for Google and social sharing.
 
 **Exit criteria:** Production smoke tests pass, backups and admin recovery are documented, and all public content is approved.
 

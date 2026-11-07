@@ -18,7 +18,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Local configuration is read from `.env`. Use `.env.example` as the template. The homepage and authentication foundation are implemented; publishing features will be added in later phases.
+Local configuration is read from `.env`. Use `.env.example` as the template. `NEXT_PUBLIC_SITE_URL` controls canonical URLs, Open Graph URLs, robots, and the sitemap.
 
 ### Supabase setup
 
@@ -48,6 +48,23 @@ http://localhost:3000/api/auth/callback/google
 npm run lint
 npm run build
 ```
+
+## Vercel deployment
+
+1. Import this repository into Vercel and keep the build command as `npm run build`.
+2. Add the production environment variables from `.env.example` for Production:
+   - `DATABASE_URL` using the Supabase transaction pooler.
+   - `DIRECT_URL` using the Supabase session pooler.
+   - A new production `AUTH_SECRET`.
+   - `NEXTAUTH_URL=https://likitha.lk`.
+   - `NEXT_PUBLIC_SITE_URL=https://likitha.lk`.
+   - `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET`.
+3. Add the Vercel deployment URL and `https://likitha.lk` to the Google OAuth authorized origins and callback URLs:
+   `https://likitha.lk/api/auth/callback/google`.
+4. Add `likitha.lk` to Vercel, then configure the DNS records Vercel provides. Verify HTTPS before changing the canonical URL.
+5. Submit `https://likitha.lk/sitemap.xml` in Google Search Console after DNS and HTTPS are working.
+
+Do not deploy the current development state publicly until admin authentication is restored. The admin review, comment moderation, and user-management routes are intentionally open because of the earlier development request.
 
 ## Product plan
 
