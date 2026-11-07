@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
 import PublicNav from "@/components/navigation/PublicNav";
+import FollowButton from "@/components/engagement/FollowButton";
 
 type WriterPageProps = {
   params: Promise<{ username: string }>;
@@ -55,6 +56,7 @@ async function WriterProfileContent({ params }: WriterPageProps) {
             <h1 className="mt-3 font-serif text-4xl text-[#e8ecf4]">{writer.displayName}</h1>
             <p className="mt-2 text-sm text-[#c8a96e]">{tierLabels[writer.tier]}</p>
             {writer.bio && <p className="mt-4 max-w-xl text-sm leading-7 text-[#9ba5c0]">{writer.bio}</p>}
+            <div className="mt-5"><FollowButton username={username} /></div>
           </div>
         </div>
 

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
+import EngagementControls from "@/components/engagement/EngagementControls";
+import CommentsSection from "@/components/engagement/CommentsSection";
 
 export function generateStaticParams() {
   return stories.map((story) => ({ id: story.id }));
@@ -63,13 +65,15 @@ export default async function StoryPage({ params }: StoryPageProps) {
               <Link href={`/story/${story.id}/chapter/1`} className="flex min-h-12 items-center justify-center rounded-lg bg-[#c8a96e] px-6 font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d]">
                 Start reading <span className="ml-2 text-lg">→</span>
               </Link>
-              <button type="button" className="flex min-h-12 items-center justify-center rounded-lg border border-[#30384e] px-6 font-medium text-[#e8ecf4] transition hover:border-[#c8a96e]/60">
-                ♡ Save story
-              </button>
+              <EngagementControls workId={story.id} />
             </div>
           </div>
         </div>
       </section>
+
+      <div className="mx-auto max-w-3xl px-5 pb-16 sm:px-8">
+        <CommentsSection workId={story.id} />
+      </div>
 
       <section className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_280px] lg:px-10">
         <div>

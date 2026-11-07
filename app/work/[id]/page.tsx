@@ -4,6 +4,8 @@ import { works } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import ReadingProgressButton from "@/components/reading/ReadingProgressButton";
 import { prisma } from "@/lib/prisma";
+import EngagementControls from "@/components/engagement/EngagementControls";
+import CommentsSection from "@/components/engagement/CommentsSection";
 
 type WorkPageProps = {
   params: Promise<{ id: string }>;
@@ -70,11 +72,13 @@ export default async function WorkPage({ params }: WorkPageProps) {
           </p>
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-3">
+          <EngagementControls workId={work.id} />
           <ReadingProgressButton workId={work.id} workType={work.type === "Poetry" ? "POETRY" : "SONG"} />
           <Link href="/browse" className="inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#c8a96e] hover:border-[#c8a96e]">
             ← Back to discover
           </Link>
         </div>
+        <CommentsSection workId={work.id} />
       </article>
     </main>
   );

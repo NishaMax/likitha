@@ -25,6 +25,11 @@ async function ReaderProfileContent() {
       role: true,
       displayName: true,
       avatarUrl: true,
+      savedWorks: {
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: { workId: true },
+      },
       readingProgress: {
         orderBy: { lastReadAt: "desc" },
         take: 20,
@@ -82,6 +87,20 @@ async function ReaderProfileContent() {
               <p className="mt-2 text-xs text-[#6f7890]">{label}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-[#252d40] bg-[#12151e] p-6">
+          <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Saved works</p>
+          <h2 className="mt-3 font-serif text-2xl text-[#e8ecf4]">Keep for later</h2>
+          {user.savedWorks.length > 0 ? (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {user.savedWorks.map((saved) => {
+                const work = works.find((candidate) => candidate.id === saved.workId);
+                if (!work) return null;
+                return <Link key={saved.workId} href={work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`} className="rounded-lg border border-[#30384e] bg-[#171b26] p-4 text-sm text-[#e8ecf4] hover:border-[#c8a96e]/60">{work.title}<span className="mt-1 block text-xs text-[#6f7890]">{work.type}</span></Link>;
+              })}
+            </div>
+          ) : <p className="mt-5 text-sm text-[#6f7890]">Save stories, poetry, or songs to find them here.</p>}
         </div>
 
         <div className="mt-8 rounded-2xl border border-[#252d40] bg-[#12151e] p-6">
