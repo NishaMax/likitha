@@ -26,7 +26,7 @@ const dashboardCopy = {
     title: "Keep Likitha moving.",
     sinhala: "කතා පරීක්ෂා කර, ලේඛකයන්ට සහාය වන්න.",
     action: "Review queue",
-    href: "/admin/queue",
+    href: "/admin/reviews",
   },
 } as const;
 

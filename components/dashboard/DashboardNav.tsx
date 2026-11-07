@@ -20,6 +20,7 @@ const linksByRole = {
   ADMIN: [
     { href: "/dashboard", label: "Home" },
     { href: "/browse", label: "Read stories" },
+    { href: "/admin/reviews", label: "Review queue" },
     { href: "/settings/profile", label: "Profile" },
   ],
 } as const;

@@ -50,6 +50,8 @@ model Work {
   status        PublicationStatus @default(DRAFT)
   submittedAt   DateTime?
   publishedAt   DateTime?
+  reviewNote    String?           @db.Text
+  reviewedAt    DateTime?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
@@ -69,6 +71,8 @@ model Chapter {
   status      PublicationStatus @default(DRAFT)
   submittedAt DateTime?
   publishedAt DateTime?
+  reviewNote  String?           @db.Text
+  reviewedAt  DateTime?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
