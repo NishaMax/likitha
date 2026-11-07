@@ -18,21 +18,27 @@ export default function ProfileNameForm({ initialName = "", onboarding = false }
     event.preventDefault();
     setError("");
     setSaving(true);
-    const response = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName }),
-    });
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName }),
+      });
 
-    if (!response.ok) {
-      const body = await response.json() as { error?: string };
-      setError(body.error ?? "Unable to save your name.");
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        setError(body.error ?? "Unable to save your name.");
+        return;
+      }
+
       setSaving(false);
-      return;
+      router.push("/dashboard");
+      router.refresh();
+    } catch {
+      setError("Unable to reach Likitha. Check your connection and try again.");
+    } finally {
+      setSaving(false);
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (
