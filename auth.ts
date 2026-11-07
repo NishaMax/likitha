@@ -26,7 +26,7 @@ const adapter: Adapter = {
 const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  role: z.enum(["READER", "WRITER"]),
+  role: z.enum(["READER", "WRITER", "ADMIN"]),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
