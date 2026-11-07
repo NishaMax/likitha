@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +13,7 @@ export default function AdminReviewsPage() {
 }
 
 async function AdminReviewsContent() {
+  await connection();
   const session = await auth();
   if (!session?.user?.email) redirect("/admin/login");
   const admin = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { role: true } });
