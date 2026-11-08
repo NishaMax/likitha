@@ -14,6 +14,8 @@ const workSchema = z.object({
   description: z.string().trim().min(10).max(1000),
   genre: z.string().trim().min(2).max(40),
   content: z.string().trim().max(100_000).optional(),
+  chapter1Title: z.string().trim().max(120).optional(),
+  chapter1Content: z.string().trim().max(100_000).optional(),
   coverImageUrl: imageDataUrl.nullable().optional(),
   coverColor: hexColor.optional(),
   coverTemplate: z.string().refine(isArtworkTemplate).optional(),
@@ -53,9 +55,10 @@ export async function POST(request: Request) {
   const parsed = workSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Complete all fields before saving." }, { status: 400 });
   const status = parsed.data.submit ? "PENDING" : "DRAFT";
-  const isSingleChapterStory =
-    parsed.data.type === "STORY" &&
-    (parsed.data.storyFormat === "SINGLE" || Boolean(parsed.data.content?.trim()));
+  const isSingleChapter = parsed.data.type === "STORY" && parsed.data.storyFormat === "SINGLE";
+  const hasChapterContent = Boolean(parsed.data.content?.trim() || parsed.data.chapter1Content?.trim());
+  const initialChapterContent = (parsed.data.chapter1Content?.trim() || parsed.data.content?.trim()) || "";
+  const initialChapterTitle = parsed.data.chapter1Title?.trim() || (isSingleChapter ? parsed.data.title : "පරිච්ඡේදය 1");
 
   const work = await prisma.work.create({
     data: {
@@ -64,7 +67,7 @@ export async function POST(request: Request) {
       title: parsed.data.title,
       description: parsed.data.description,
       genre: parsed.data.genre,
-      content: parsed.data.content || null,
+      content: isSingleChapter ? (initialChapterContent || null) : (parsed.data.type !== "STORY" ? (parsed.data.content || null) : null),
       coverImageUrl: parsed.data.coverImageUrl ?? null,
       coverColor: parsed.data.coverColor ?? "#334c50",
       coverTemplate: parsed.data.coverTemplate ?? "midnight",
@@ -74,13 +77,14 @@ export async function POST(request: Request) {
     select: { id: true },
   });
 
-  if (isSingleChapterStory) {
+  // If this is a story and chapter content was provided (either single-chapter or initial Chapter 1 in series):
+  if (parsed.data.type === "STORY" && (isSingleChapter || hasChapterContent)) {
     await prisma.chapter.create({
       data: {
         workId: work.id,
         chapterNo: 1,
-        title: parsed.data.title,
-        content: parsed.data.content?.trim() || "කතාවේ අන්තර්ගතය",
+        title: initialChapterTitle,
+        content: initialChapterContent || "කතාවේ අන්තර්ගතය",
         imageUrl: parsed.data.coverImageUrl ?? null,
         imageColor: parsed.data.coverColor ?? "#334c50",
         imageTemplate: parsed.data.coverTemplate ?? "midnight",

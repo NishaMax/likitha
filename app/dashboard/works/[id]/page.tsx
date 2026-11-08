@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/auth";
 import DashboardNav from "@/components/dashboard/DashboardNav";
+import { WorkActionsBar, DeleteChapterButton } from "@/components/publishing/WorkManagementControls";
 import { prisma } from "@/lib/prisma";
 
 type Props = { params: Promise<{ id: string }> };
@@ -53,11 +54,11 @@ async function WriterWorkContent({ params }: Props) {
     <main className="min-h-screen">
       <DashboardNav role="WRITER" />
       <section className="mx-auto max-w-4xl px-5 pb-20 pt-10 sm:px-8 sm:pt-16">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <Link href="/dashboard/works" className="inline-flex items-center text-sm text-[#9ba5c0] hover:text-[#e8ecf4]">
             ← All works
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {work.status === "APPROVED" && (
               <Link
                 href={work.type === "STORY" ? `/story/${work.id}` : `/work/${work.id}`}
@@ -73,6 +74,7 @@ async function WriterWorkContent({ params }: Props) {
             >
               {work.status === "DRAFT" ? "Edit draft" : "Edit work"}
             </Link>
+            <WorkActionsBar workId={work.id} status={work.status} workTitle={work.title} />
           </div>
         </div>
 
@@ -217,7 +219,7 @@ async function WriterWorkContent({ params }: Props) {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <span
                         className={`rounded-full border px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider ${
                           chapter.status === "APPROVED"
@@ -237,6 +239,7 @@ async function WriterWorkContent({ params }: Props) {
                       >
                         Edit
                       </Link>
+                      <DeleteChapterButton workId={work.id} chapterId={chapter.id} chapterNo={chapter.chapterNo} />
                     </div>
                   </div>
                 ))}

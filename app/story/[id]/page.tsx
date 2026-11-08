@@ -111,9 +111,9 @@ async function StoryPageContent({ params }: StoryPageProps) {
             <p className="mt-6 max-w-xl font-sinhala text-base leading-8 text-[#c4cada]">{story.description}</p>
 
             <div className="mt-6 flex flex-wrap gap-5 text-xs text-[#6f7890]">
-              <span>{story.chapters} chapters</span>
+              <span>{story.chapters === 1 ? "1 chapter (Single story)" : `${story.chapters} chapters`}</span>
               <span>New readers</span>
-              <span>Updated weekly</span>
+              <span>{story.chapters === 1 ? "Complete story" : "Updated weekly"}</span>
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -150,7 +150,9 @@ async function StoryPageContent({ params }: StoryPageProps) {
                 <span className="text-[#6f7890]">→</span>
               </Link>
             ))}
-            <div className="py-4 text-center text-xs text-[#6f7890]">More chapters coming soon</div>
+            {story.chapters > 1 && (
+              <div className="py-4 text-center text-xs text-[#6f7890]">More chapters coming soon</div>
+            )}
           </div>
         </div>
 

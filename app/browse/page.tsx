@@ -27,7 +27,7 @@ function WorkCard({ work, isRead }: { work: Work; isRead: boolean }) {
         <p className="text-sm text-[#9ba5c0]">by {work.author}</p>
         <p className="mt-2 line-clamp-2 font-sinhala text-sm leading-7 text-[#6f7890]">{work.description}</p>
         <div className="mt-4 flex items-center justify-between border-t border-[#252d40] pt-3 text-xs text-[#6f7890]">
-          <span>{isStory ? `${work.chapters} chapters` : work.type === "Poetry" ? "Poem" : "Lyrics"}</span>
+          <span>{isStory ? (work.chapters === 1 ? "1 chapter" : `${work.chapters} chapters`) : work.type === "Poetry" ? "Poem" : "Lyrics"}</span>
           <span>{work.likes ?? work.readers} {work.likes !== undefined ? "likes" : "reads"}</span>
         </div>
       </div>

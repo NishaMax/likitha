@@ -40,6 +40,8 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
   const [description, setDescription] = useState(initialWork?.description ?? "");
   const [genre, setGenre] = useState(initialWork?.genre ?? "");
   const [content, setContent] = useState(initialWork?.content ?? "");
+  const [chapter1Title, setChapter1Title] = useState("පරිච්ඡේදය 1");
+  const [chapter1Content, setChapter1Content] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(initialWork?.coverImageUrl ?? null);
   const [coverColor, setCoverColor] = useState(initialWork?.coverColor ?? "#334c50");
   const [coverTemplate, setCoverTemplate] = useState<ArtworkTemplate>(
@@ -48,6 +50,7 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
   const [submit, setSubmit] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const router = useRouter();
 
   function chooseCover(event: React.ChangeEvent<HTMLInputElement>) {
@@ -71,9 +74,15 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
     event.preventDefault();
     setError("");
 
-    if (type === "STORY" && storyFormat === "SINGLE" && submit && content.trim().length < 20) {
-      setError("Single-chapter stories must have at least 20 characters before submitting for approval.");
-      return;
+    if (type === "STORY") {
+      if (storyFormat === "SINGLE" && submit && content.trim().length < 20) {
+        setError("Single-chapter stories must have at least 20 characters before submitting for approval.");
+        return;
+      }
+      if (storyFormat === "SERIAL" && !isEditing && submit && chapter1Content.trim().length < 20) {
+        setError("Please write Chapter 1 (at least 20 characters) before submitting your story for approval.");
+        return;
+      }
     }
 
     setSaving(true);
@@ -91,6 +100,8 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
           description,
           genre,
           content: content.trim() || null,
+          chapter1Title: chapter1Title.trim() || undefined,
+          chapter1Content: chapter1Content.trim() || undefined,
           coverImageUrl,
           coverColor,
           coverTemplate,
@@ -113,7 +124,25 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
     }
   }
 
+  async function handleDelete() {
+    if (!initialWork) return;
+    setSaving(true);
+    try {
+      const response = await fetch(`/api/works/${initialWork.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        setError("Unable to delete this work.");
+        setSaving(false);
+        return;
+      }
+      window.location.href = "/dashboard/works";
+    } catch {
+      setError("Connection error. Try again.");
+      setSaving(false);
+    }
+  }
+
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+  const chapter1WordCount = chapter1Content.trim() ? chapter1Content.trim().split(/\s+/).length : 0;
 
   return (
     <form onSubmit={saveWork} className="max-w-2xl space-y-7">
@@ -188,7 +217,7 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
                 )}
               </div>
               <p className="mt-1.5 font-sinhala text-xs leading-5 text-[#c8a96e]">පරිච්ඡේද කිහිපයකින් යුත් කතාවක්</p>
-              <p className="mt-2 text-xs leading-5 text-[#858a99]">An episodic story published chapter by chapter. Add new chapters over time.</p>
+              <p className="mt-2 text-xs leading-5 text-[#858a99]">An episodic story published chapter by chapter. You can write Chapter 1 now and add more later.</p>
             </button>
           </div>
         </div>
@@ -310,29 +339,104 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
         </div>
       )}
 
+      {/* Multi-chapter series: Chapter 1 writing section on initial creation */}
+      {type === "STORY" && storyFormat === "SERIAL" && !isEditing && (
+        <div className="rounded-2xl border border-[#30384e] bg-[#171b26] p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#252d40] pb-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Initial chapter</p>
+              <h3 className="mt-1 font-serif text-lg text-[#e8ecf4]">Include Chapter 1 in this submission</h3>
+            </div>
+            <span className="text-xs text-[#9ba5c0]">Chapter 2, 3 can be added later</span>
+          </div>
+
+          <label className="block text-sm text-[#c4cada]">
+            Chapter 1 title
+            <input
+              value={chapter1Title}
+              onChange={(event) => setChapter1Title(event.target.value)}
+              maxLength={120}
+              placeholder="e.g. Chapter 1 / පරිච්ඡේදය 1"
+              className="mt-2 min-h-12 w-full rounded-lg border border-[#30384e] bg-[#12151e] px-4 font-sinhala text-sm text-[#e8ecf4] outline-none focus:border-[#c8a96e]"
+            />
+          </label>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm text-[#c4cada]">Chapter 1 content</label>
+              <span className="text-xs text-[#6f7890]">{chapter1WordCount} words</span>
+            </div>
+            <textarea
+              value={chapter1Content}
+              onChange={(event) => setChapter1Content(event.target.value)}
+              rows={12}
+              placeholder="Write Chapter 1 in Sinhala here... 1 වන පරිච්ඡේදයේ අන්තර්ගතය මෙතැන ලියන්න..."
+              className="w-full rounded-lg border border-[#30384e] bg-[#12151e] px-4 py-3 font-sinhala text-base leading-8 text-[#e8ecf4] outline-none focus:border-[#c8a96e]"
+            />
+          </div>
+        </div>
+      )}
+
       {error && (
         <p role="alert" className="rounded-lg border border-[#f87171]/30 bg-[#f87171]/10 px-4 py-3 text-sm text-[#fca5a5]">
           {error}
         </p>
       )}
 
-      <div className="flex flex-wrap gap-3 pt-2">
-        <button
-          type="submit"
-          onClick={() => setSubmit(false)}
-          disabled={saving}
-          className="min-h-12 rounded-lg border border-[#30384e] px-6 text-sm font-medium text-[#c8a96e] transition hover:border-[#c8a96e]/60 disabled:opacity-60"
-        >
-          {saving ? "Saving..." : "Save draft"}
-        </button>
-        <button
-          type="submit"
-          onClick={() => setSubmit(true)}
-          disabled={saving}
-          className="min-h-12 rounded-lg bg-[#c8a96e] px-6 text-sm font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d] disabled:opacity-60"
-        >
-          {saving ? "Submitting..." : isEditing && initialWork?.status === "REJECTED" ? "Resubmit for approval" : "Submit for approval"}
-        </button>
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            onClick={() => setSubmit(false)}
+            disabled={saving}
+            className="min-h-12 rounded-lg border border-[#30384e] px-6 text-sm font-medium text-[#c8a96e] transition hover:border-[#c8a96e]/60 disabled:opacity-60"
+          >
+            {saving ? "Saving..." : "Save draft"}
+          </button>
+          <button
+            type="submit"
+            onClick={() => setSubmit(true)}
+            disabled={saving}
+            className="min-h-12 rounded-lg bg-[#c8a96e] px-6 text-sm font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d] disabled:opacity-60"
+          >
+            {saving ? "Submitting..." : isEditing && initialWork?.status === "REJECTED" ? "Resubmit for approval" : "Submit for approval"}
+          </button>
+        </div>
+
+        {isEditing && (
+          <div>
+            {!confirmDelete ? (
+              <button
+                type="button"
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving}
+                className="text-xs text-[#f87171] hover:underline"
+              >
+                Delete this work
+              </button>
+            ) : (
+              <div className="flex items-center gap-2 rounded-lg border border-[#f87171]/40 bg-[#1f1618] px-3 py-2 text-xs">
+                <span className="text-[#fca5a5]">Are you sure?</span>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="font-bold text-[#f87171] hover:underline"
+                >
+                  Yes, delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={saving}
+                  className="text-[#9ba5c0] hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </form>
   );

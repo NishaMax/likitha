@@ -8,14 +8,15 @@ const imageDataUrl = z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
 const updateWorkSchema = z.object({
-  title: z.string().trim().min(2).max(120),
-  description: z.string().trim().min(10).max(1000),
-  genre: z.string().trim().min(2).max(40),
+  title: z.string().trim().min(2).max(120).optional(),
+  description: z.string().trim().min(10).max(1000).optional(),
+  genre: z.string().trim().min(2).max(40).optional(),
   content: z.string().trim().max(100_000).optional().nullable(),
   coverImageUrl: imageDataUrl.nullable().optional(),
   coverColor: hexColor.optional(),
   coverTemplate: z.string().refine(isArtworkTemplate).optional(),
   submit: z.boolean().optional(),
+  action: z.enum(["hide", "unpublish"]).optional(),
 });
 
 type RouteProps = { params: Promise<{ id: string }> };
@@ -68,14 +69,29 @@ export async function PATCH(request: Request, { params }: RouteProps) {
   const parsed = updateWorkSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Complete all required fields correctly." }, { status: 400 });
 
+  // Handle hiding / unpublishing an approved work
+  if (parsed.data.action === "hide" || parsed.data.action === "unpublish") {
+    await prisma.$transaction([
+      prisma.work.update({
+        where: { id },
+        data: { status: "DRAFT" },
+      }),
+      prisma.chapter.updateMany({
+        where: { workId: id },
+        data: { status: "DRAFT" },
+      }),
+    ]);
+    return NextResponse.json({ work: { id, status: "DRAFT" } });
+  }
+
   const status = parsed.data.submit ? "PENDING" : "DRAFT";
   const updatedWork = await prisma.work.update({
     where: { id },
     data: {
-      title: parsed.data.title,
-      description: parsed.data.description,
-      genre: parsed.data.genre,
-      content: parsed.data.content ?? existingWork.content,
+      title: parsed.data.title ?? existingWork.title,
+      description: parsed.data.description ?? existingWork.description,
+      genre: parsed.data.genre ?? existingWork.genre,
+      content: parsed.data.content !== undefined ? parsed.data.content : existingWork.content,
       coverImageUrl: parsed.data.coverImageUrl !== undefined ? parsed.data.coverImageUrl : existingWork.coverImageUrl,
       coverColor: parsed.data.coverColor ?? existingWork.coverColor,
       coverTemplate: parsed.data.coverTemplate ?? existingWork.coverTemplate,
@@ -94,7 +110,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       await prisma.chapter.update({
         where: { id: firstChapter.id },
         data: {
-          title: parsed.data.title,
+          title: parsed.data.title ?? firstChapter.title,
           content: newContent,
           imageUrl: parsed.data.coverImageUrl !== undefined ? parsed.data.coverImageUrl : firstChapter.imageUrl,
           imageColor: parsed.data.coverColor ?? firstChapter.imageColor,
@@ -123,7 +139,7 @@ export async function PATCH(request: Request, { params }: RouteProps) {
       data: {
         workId: existingWork.id,
         chapterNo: 1,
-        title: parsed.data.title,
+        title: parsed.data.title ?? existingWork.title,
         content: parsed.data.content.trim(),
         imageUrl: parsed.data.coverImageUrl ?? null,
         imageColor: parsed.data.coverColor ?? "#334c50",
@@ -148,7 +164,15 @@ export async function DELETE(request: Request, { params }: RouteProps) {
 
   if (!work) return NextResponse.json({ error: "Work not found." }, { status: 404 });
 
-  await prisma.work.delete({ where: { id } });
+  await prisma.$transaction([
+    prisma.chapter.deleteMany({ where: { workId: id } }),
+    prisma.comment.deleteMany({ where: { workId: id } }),
+    prisma.workLike.deleteMany({ where: { workId: id } }),
+    prisma.savedWork.deleteMany({ where: { workId: id } }),
+    prisma.readingProgress.deleteMany({ where: { workId: id } }),
+    prisma.work.delete({ where: { id } }),
+  ]);
+
   return NextResponse.json({ ok: true });
 }
 
