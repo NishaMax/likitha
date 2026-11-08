@@ -8,7 +8,7 @@ type SitemapEntry = { path: string; updatedAt?: Date };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
-  const staticRoutes = ["/", "/browse", "/auth", "/login", "/register"];
+  const staticRoutes = ["/", "/browse", "/auth", "/login", "/register", "/privacy", "/terms"];
   const sampleRoutes = works.map((work) => (work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`));
   const sampleChapterRoutes = stories.flatMap((story) =>
     Array.from({ length: story.chapters }, (_, index) => `/story/${story.id}/chapter/${index + 1}`),

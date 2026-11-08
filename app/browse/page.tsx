@@ -116,7 +116,7 @@ export default function BrowsePage() {
           />
         </div>
 
-        <div className="mt-6 -mx-5 flex gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
+        <div id="genres" className="mt-6 -mx-5 flex gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
           {contentTypes.map((type) => (
             <button
               key={type}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Sinhala, Playfair_Display } from "next/font/google";
 import AmbientBackground from "@/components/visual/AmbientBackground";
+import SiteFooter from "@/components/navigation/SiteFooter";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://likitha.lk";
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <AmbientBackground />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

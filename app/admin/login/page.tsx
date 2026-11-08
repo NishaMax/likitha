@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Brand from "@/components/navigation/Brand";
 
 export default function AdminLoginPage() {
   const [error, setError] = useState("");
@@ -31,6 +32,7 @@ export default function AdminLoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-[#30384e] bg-[#171b26] p-6 sm:p-8">
+        <Brand />
         <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Likitha administration</p>
         <h1 className="mt-4 font-serif text-4xl text-[#e8ecf4]">Admin sign in.</h1>
         <p className="mt-3 text-sm leading-7 text-[#9ba5c0]">This area is restricted to the configured administrator.</p>

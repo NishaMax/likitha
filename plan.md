@@ -95,6 +95,23 @@ Use a deep ink-and-parchment literary aesthetic: dark backgrounds, warm gold acc
 
 The background may include restrained ambient motion: a few low-opacity gold/umber glows and firefly-like points animated with CSS `transform` and `opacity` only. Keep the effect behind content, avoid continuous JavaScript animation, and honor `prefers-reduced-motion` so the mobile reading experience remains smooth and calm.
 
+The refined palette is:
+
+| Token | Value |
+| --- | --- |
+| Primary page background | `#080B14` |
+| Header/footer background | `#070A11` |
+| Card background | `#111520` |
+| Elevated surface | `#181524` |
+| Primary gold | `#E4BD70` |
+| Light/deep gold | `#EFD18D` / `#C99C4D` |
+| Primary text | `#F6F0E6` |
+| Secondary/muted text | `#B9BBC8` / `#858A99` |
+| Border | `#252A39` |
+| Atmosphere colors | violet `#39285D`, burgundy `#592E3C`, teal `#23465A` |
+
+Use the supplied moonlit mountain image as a low-opacity shared atmosphere and a stronger, dark-overlay hero background on the homepage. Keep navigation controls in English, use the `ලි` brand mark at the left, and keep Privacy Policy and Terms of Use reachable from the shared footer.
+
 ### Color palette
 
 | Token | Value | Use |

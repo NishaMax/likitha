@@ -1,26 +1,25 @@
 import Link from "next/link";
+import Brand from "@/components/navigation/Brand";
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-hidden">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-        <Link href="/" className="font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha home">
-          likitha<span className="text-[#c8a96e]">.</span>
-        </Link>
+    <main className="site-home min-h-screen overflow-hidden">
+      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+        <Brand />
         <nav className="flex items-center gap-2 text-sm" aria-label="Primary navigation">
-          <Link href="/browse" className="hidden min-h-11 items-center rounded-full px-4 text-[#9ba5c0] transition hover:text-[#e8ecf4] sm:flex">
+          <Link href="/browse" className="hidden min-h-11 items-center rounded-full px-4 text-[#B9BBC8] transition hover:text-[#F6F0E6] sm:flex">
             Discover
           </Link>
-          <Link href="/auth?mode=login" className="flex min-h-11 items-center rounded-full px-4 text-[#9ba5c0] transition hover:text-[#e8ecf4]">
+          <Link href="/auth?mode=login" className="flex min-h-11 items-center rounded-full px-4 text-[#B9BBC8] transition hover:text-[#F6F0E6]">
             Log in
           </Link>
-          <Link href="/auth?mode=register" className="flex min-h-11 items-center rounded-full border border-[#c8a96e]/40 px-4 text-[#c8a96e] transition hover:bg-[#c8a96e]/10">
-            Start writing
+          <Link href="/auth?mode=register" className="flex min-h-11 items-center rounded-full border border-[#E4BD70]/40 px-4 text-[#E4BD70] transition hover:bg-[#E4BD70]/10">
+            Sign up
           </Link>
         </nav>
       </header>
 
-      <section className="relative mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-16 lg:px-10 lg:pb-28 lg:pt-24">
+      <section className="home-hero relative mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-12 sm:px-8 sm:pt-20 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:gap-16 lg:px-10 lg:pb-28 lg:pt-24">
         <div className="relative z-10">
           <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#c8a96e]/25 bg-[#c8a96e]/[.07] px-3 py-2 text-xs font-medium tracking-wide text-[#c8a96e]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#c8a96e]" />
@@ -97,10 +96,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="write" className="mx-auto flex max-w-6xl flex-col gap-3 px-5 py-8 text-xs text-[#6f7890] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-        <span className="font-serif text-base text-[#9ba5c0]">likitha<span className="text-[#c8a96e]">.</span></span>
-        <span>Write. Share. Discover.</span>
-      </footer>
+      <div id="write" />
     </main>
   );
 }

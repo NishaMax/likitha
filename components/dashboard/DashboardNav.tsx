@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SignOutButton from "@/components/auth/SignOutButton";
+import Brand from "@/components/navigation/Brand";
 
 type DashboardNavProps = {
   role: "READER" | "WRITER" | "ADMIN";
@@ -34,9 +35,7 @@ export default function DashboardNav({ role }: DashboardNavProps) {
   return (
     <header className="border-b border-[#202638] bg-[#0f1117]/95 backdrop-blur">
       <div className="mx-auto flex min-h-20 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
-        <Link href="/dashboard" className="shrink-0 font-serif text-2xl tracking-tight text-[#e8ecf4]" aria-label="Likitha dashboard">
-          likitha<span className="text-[#c8a96e]">.</span>
-        </Link>
+        <Brand href="/dashboard" />
         <nav className="hidden items-center gap-1 md:flex" aria-label="Dashboard navigation">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="flex min-h-11 items-center rounded-lg px-3 text-sm text-[#9ba5c0] transition hover:bg-[#171b26] hover:text-[#e8ecf4]">
