@@ -24,14 +24,15 @@ const adapter: Adapter = {
 };
 
 const credentialsSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z.string().trim().email(),
+  password: z.string().min(1),
   role: z.enum(["READER", "WRITER", "ADMIN"]),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   adapter,
+  session: { strategy: "jwt" },
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -47,22 +48,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsed = credentialsSchema.safeParse(rawCredentials);
         if (!parsed.success) return null;
 
+        const inputEmail = parsed.data.email.trim().toLowerCase();
+        const configuredAdminEmail = process.env.ADMIN_EMAIL?.replace(/^["']|["']$/g, "").trim().toLowerCase();
+        const configuredAdminPassword = process.env.ADMIN_PASSWORD?.replace(/^["']|["']$/g, "").trim();
+
         if (
           parsed.data.role === "ADMIN" &&
-          parsed.data.email.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase() &&
-          process.env.ADMIN_PASSWORD &&
-          parsed.data.password === process.env.ADMIN_PASSWORD
+          configuredAdminEmail &&
+          configuredAdminPassword &&
+          inputEmail === configuredAdminEmail &&
+          parsed.data.password.trim() === configuredAdminPassword
         ) {
-          return {
-            id: "environment-admin",
-            email: process.env.ADMIN_EMAIL,
-            name: "Likitha Admin",
-            role: "ADMIN",
-          };
+          try {
+            let adminUser = await prisma.user.findUnique({
+              where: { email: configuredAdminEmail },
+            });
+
+            if (!adminUser) {
+              adminUser = await prisma.user.create({
+                data: {
+                  email: configuredAdminEmail,
+                  displayName: "Likitha Admin",
+                  role: "ADMIN",
+                  profileComplete: true,
+                },
+              });
+            } else if (adminUser.role !== "ADMIN") {
+              adminUser = await prisma.user.update({
+                where: { email: configuredAdminEmail },
+                data: { role: "ADMIN" },
+              });
+            }
+
+            return {
+              id: adminUser.id,
+              email: adminUser.email,
+              name: adminUser.displayName || "Likitha Admin",
+              role: "ADMIN",
+            };
+          } catch {
+            return {
+              id: "environment-admin",
+              email: configuredAdminEmail,
+              name: "Likitha Admin",
+              role: "ADMIN",
+            };
+          }
         }
 
         const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email.toLowerCase() },
+          where: { email: inputEmail },
         });
 
         if (
@@ -102,25 +137,42 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async jwt({ token, user }) {
-      if (user?.role) token.role = user.role;
+      if (user) {
+        if (user.role) token.role = user.role;
+        if (user.id) token.id = user.id;
+      }
       return token;
     },
-    async session({ session, token, user }) {
-      if (session.user?.email) {
+    async session({ session, token }) {
+      if (token) {
+        if (token.role) {
+          session.user.role = token.role as "READER" | "WRITER" | "ADMIN";
+        }
+        if (token.id || token.sub) {
+          session.user.id = (token.id as string) ?? (token.sub as string);
+        }
+      }
+
+      const configuredAdminEmail = process.env.ADMIN_EMAIL?.replace(/^["']|["']$/g, "").trim().toLowerCase();
+      if (
+        token?.role === "ADMIN" ||
+        (session.user?.email &&
+          configuredAdminEmail &&
+          session.user.email.toLowerCase() === configuredAdminEmail)
+      ) {
+        session.user.role = "ADMIN";
+        return session;
+      }
+
+      if (session.user?.email && session.user.role !== "ADMIN") {
         const databaseUser = await prisma.user.findUnique({
           where: { email: session.user.email.toLowerCase() },
-          select: { role: true, isBanned: true },
+          select: { id: true, role: true, isBanned: true },
         });
 
         if (databaseUser && !databaseUser.isBanned) {
           session.user.role = databaseUser.role;
-        } else if (token?.role === "ADMIN") {
-          session.user.role = "ADMIN";
-        }
-      } else {
-        const sessionRole = token?.role ?? user?.role;
-        if (session.user && (sessionRole === "READER" || sessionRole === "WRITER" || sessionRole === "ADMIN")) {
-          session.user.role = sessionRole;
+          session.user.id = databaseUser.id;
         }
       }
 

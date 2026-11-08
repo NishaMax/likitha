@@ -15,18 +15,28 @@ export default function AdminLoginPage() {
     setError("");
     setSaving(true);
     const formData = new FormData(event.currentTarget);
-    const result = await signIn("credentials", {
-      email: formData.get("email"),
-      password: formData.get("password"),
-      role: "ADMIN",
-      redirect: false,
-    });
-    if (result?.error) {
-      setError("The admin email or password is incorrect.");
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        role: "ADMIN",
+        redirect: false,
+      });
+
+      if (result?.error || !result?.ok) {
+        setError("The admin email or password is incorrect.");
+        setSaving(false);
+        return;
+      }
+
+      window.location.href = "/admin/reviews";
+    } catch {
+      setError("Unable to sign in. Please try again.");
       setSaving(false);
-      return;
     }
-    router.push("/admin/reviews");
   }
 
   return (

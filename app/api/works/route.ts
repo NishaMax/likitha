@@ -9,6 +9,7 @@ const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
 const workSchema = z.object({
   type: z.enum(["STORY", "POETRY", "SONG"]),
+  storyFormat: z.enum(["SINGLE", "SERIAL"]).optional(),
   title: z.string().trim().min(2).max(120),
   description: z.string().trim().min(10).max(1000),
   genre: z.string().trim().min(2).max(40),
@@ -52,6 +53,10 @@ export async function POST(request: Request) {
   const parsed = workSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Complete all fields before saving." }, { status: 400 });
   const status = parsed.data.submit ? "PENDING" : "DRAFT";
+  const isSingleChapterStory =
+    parsed.data.type === "STORY" &&
+    (parsed.data.storyFormat === "SINGLE" || Boolean(parsed.data.content?.trim()));
+
   const work = await prisma.work.create({
     data: {
       authorId: writer.id,
@@ -68,5 +73,22 @@ export async function POST(request: Request) {
     },
     select: { id: true },
   });
+
+  if (isSingleChapterStory) {
+    await prisma.chapter.create({
+      data: {
+        workId: work.id,
+        chapterNo: 1,
+        title: parsed.data.title,
+        content: parsed.data.content?.trim() || "කතාවේ අන්තර්ගතය",
+        imageUrl: parsed.data.coverImageUrl ?? null,
+        imageColor: parsed.data.coverColor ?? "#334c50",
+        imageTemplate: parsed.data.coverTemplate ?? "midnight",
+        status,
+        submittedAt: parsed.data.submit ? new Date() : null,
+      },
+    });
+  }
+
   return NextResponse.json({ work }, { status: 201 });
 }

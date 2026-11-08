@@ -60,7 +60,26 @@ export async function PATCH(request: Request) {
       data: reviewData,
     }) : { count: 0 };
     if (result.count === 0) return NextResponse.json({ error: "Pending work not found." }, { status: 404 });
-    if (work) await createNotification(work.authorId, "REVIEW", `Your work was ${status === "APPROVED" ? "approved" : "rejected"}.`, "/dashboard/works");
+    if (work) {
+      if (work.type === "STORY") {
+        const pendingChapters = await prisma.chapter.findMany({
+          where: { workId: parsed.data.entityId, status: "PENDING" },
+          select: { id: true },
+        });
+        if (pendingChapters.length > 0) {
+          await prisma.chapter.updateMany({
+            where: { workId: parsed.data.entityId, status: "PENDING" },
+            data: reviewData,
+          });
+          if (status === "APPROVED") {
+            for (const ch of pendingChapters) {
+              await awardTierEvent(work.authorId, `CHAPTER_APPROVED:${ch.id}`, "CHAPTER_APPROVED", 2);
+            }
+          }
+        }
+      }
+      await createNotification(work.authorId, "REVIEW", `Your work was ${status === "APPROVED" ? "approved" : "rejected"}.`, "/dashboard/works");
+    }
   } else {
     const chapter = await prisma.chapter.findFirst({
       where: { id: parsed.data.entityId, status: "PENDING" },
