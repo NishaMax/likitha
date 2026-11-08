@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import DashboardNav from "@/components/dashboard/DashboardNav";
 import { prisma } from "@/lib/prisma";
-import { works } from "@/lib/stories";
 
 export default function ReaderProfilePage() {
   return (
@@ -102,11 +101,10 @@ async function ReaderProfileContent() {
           {user.savedWorks.length > 0 ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {user.savedWorks.map((saved) => {
-                const work = works.find((candidate) => candidate.id === saved.workId);
                 const databaseWork = databaseWorkMap.get(saved.workId);
-                if (!work && !databaseWork) return null;
-                const type = work?.type ?? (databaseWork?.type === "STORY" ? "Stories" : databaseWork?.type === "POETRY" ? "Poetry" : "Songs");
-                return <Link key={saved.workId} href={type === "Stories" ? `/story/${saved.workId}` : `/work/${saved.workId}`} className="rounded-lg border border-[#30384e] bg-[#171b26] p-4 text-sm text-[#e8ecf4] hover:border-[#c8a96e]/60">{work?.title ?? databaseWork?.title}<span className="mt-1 block text-xs text-[#6f7890]">{type}</span></Link>;
+                if (!databaseWork) return null;
+                const type = databaseWork.type === "STORY" ? "Stories" : databaseWork.type === "POETRY" ? "Poetry" : "Songs";
+                return <Link key={saved.workId} href={type === "Stories" ? `/story/${saved.workId}` : `/work/${saved.workId}`} className="rounded-lg border border-[#30384e] bg-[#171b26] p-4 text-sm text-[#e8ecf4] hover:border-[#c8a96e]/60">{databaseWork.title}<span className="mt-1 block text-xs text-[#6f7890]">{type}</span></Link>;
               })}
             </div>
           ) : <p className="mt-5 text-sm text-[#6f7890]">Save stories, poetry, or songs to find them here.</p>}
@@ -118,11 +116,10 @@ async function ReaderProfileContent() {
           {user.readingProgress.length > 0 ? (
             <div className="mt-5 divide-y divide-[#252d40]">
               {user.readingProgress.map((item) => {
-                const work = works.find((candidate) => candidate.id === item.workId);
                 const databaseWork = databaseWorkMap.get(item.workId);
-                if (!work && !databaseWork) return null;
-                const type = work?.type ?? (databaseWork?.type === "STORY" ? "Stories" : databaseWork?.type === "POETRY" ? "Poetry" : "Songs");
-                const title = work?.title ?? databaseWork?.title;
+                if (!databaseWork) return null;
+                const type = databaseWork.type === "STORY" ? "Stories" : databaseWork.type === "POETRY" ? "Poetry" : "Songs";
+                const title = databaseWork.title;
                 const href = type === "Stories" ? `/story/${item.workId}` : `/work/${item.workId}`;
                 const status = type === "Stories"
                   ? `${item.chaptersRead} of ${item.totalChapters ?? "?"} chapters`

@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardTierEvent } from "@/lib/tier";
 import { createNotification } from "@/lib/notifications";
-import { works } from "@/lib/stories";
 
 const schema = z.object({ workId: z.string().trim().min(1).max(120), content: z.string().trim().min(2).max(1000) });
 
@@ -28,8 +27,7 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email.toLowerCase() }, select: { id: true, isBanned: true } });
   if (!user || user.isBanned) return NextResponse.json({ error: "You cannot comment right now." }, { status: 403 });
   const work = await prisma.work.findFirst({ where: { id: parsed.data.workId, status: "APPROVED" }, select: { authorId: true, type: true } });
-  const isSampleWork = works.some((item) => item.id === parsed.data.workId);
-  if (!work && !isSampleWork) return NextResponse.json({ error: "Published work not found." }, { status: 404 });
+  if (!work) return NextResponse.json({ error: "Published work not found." }, { status: 404 });
   const comment = await prisma.comment.create({ data: { userId: user.id, workId: parsed.data.workId, content: parsed.data.content }, select: { id: true } });
   if (work && work.authorId !== user.id) {
     await awardTierEvent(work.authorId, `COMMENT:${user.id}:${parsed.data.workId}`, "COMMENT", 3);

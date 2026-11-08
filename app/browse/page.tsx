@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { contentTypes, genres, SortOption, works, type ContentTypeFilter, type Genre } from "@/lib/stories";
+import { contentTypes, genres, SortOption, type ContentTypeFilter, type Genre, type Work } from "@/lib/content";
 import PublicNav from "@/components/navigation/PublicNav";
 
-function WorkCard({ work, isRead }: { work: (typeof works)[number] & { likes?: number; comments?: number }; isRead: boolean }) {
+function WorkCard({ work, isRead }: { work: Work; isRead: boolean }) {
   const isStory = work.type === "Stories";
   return (
     <Link
@@ -41,18 +41,18 @@ export default function BrowsePage() {
   const [selectedGenre, setSelectedGenre] = useState<Genre>("All genres");
   const [sort, setSort] = useState<SortOption>("Trending");
   const [readWorkIds, setReadWorkIds] = useState<Set<string>>(new Set());
-  const [allWorks, setAllWorks] = useState(works);
+  const [allWorks, setAllWorks] = useState<Work[]>([]);
 
   useEffect(() => {
     let active = true;
     fetch("/api/public/works")
       .then(async (response) => {
         if (!response.ok) return;
-        const body = await response.json() as { works?: typeof works };
-        if (active && body.works) setAllWorks([...works, ...body.works]);
+        const body = await response.json() as { works?: Work[] };
+        if (active && body.works) setAllWorks(body.works);
       })
       .catch(() => {
-        // Sample works remain available if the public database request fails.
+        // An unavailable catalog is shown as an empty state.
       });
     return () => {
       active = false;
@@ -178,8 +178,9 @@ export default function BrowsePage() {
             </div>
           ) : (
             <div className="mt-6 rounded-2xl border border-dashed border-[#30384e] px-5 py-16 text-center">
-              <p className="font-sinhala text-lg text-[#e8ecf4]">නිර්මාණ හමු වුණේ නැහැ.</p>
-              <p className="mt-2 text-sm text-[#6f7890]">Try another search, type, or genre.</p>
+              <p className="font-sinhala text-lg text-[#e8ecf4]">{allWorks.length === 0 ? "පළමු නිර්මාණය බලාපොරොත්තුවෙන් සිටී." : "නිර්මාණ හමු වුණේ නැහැ."}</p>
+              <p className="mt-2 text-sm text-[#6f7890]">{allWorks.length === 0 ? "The library is waiting for its first stories." : "Try another search, type, or genre."}</p>
+              {allWorks.length === 0 && <Link href="/auth?mode=register" className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-[#E4BD70]/50 px-4 text-sm text-[#E4BD70]">Create an account</Link>}
             </div>
           )}
         </div>

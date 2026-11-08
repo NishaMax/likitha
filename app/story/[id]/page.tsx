@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { stories } from "@/lib/stories";
 import PublicNav from "@/components/navigation/PublicNav";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
@@ -11,21 +10,24 @@ import { prisma } from "@/lib/prisma";
 import { connection } from "next/server";
 import { getArtworkTemplateClass } from "@/lib/artwork";
 
-export function generateStaticParams() {
-  return stories.map((story) => ({ id: story.id }));
-}
-
 type StoryPageProps = {
   params: Promise<{ id: string }>;
 };
 
-const chapterPreviews = [
-  { number: 1, title: "පළමු හමුවීම", date: "2 days ago" },
-  { number: 2, title: "වැස්සට පෙර", date: "5 days ago" },
-  { number: 3, title: "මතක මාවත", date: "1 week ago" },
-  { number: 4, title: "නොකියූ වචන", date: "1 week ago" },
-  { number: 5, title: "අලුත් ආරම්භයක්", date: "2 weeks ago" },
-];
+type StoryView = {
+  id: string;
+  title: string;
+  description: string;
+  genre: string;
+  author: string;
+  authorUsername: string;
+  chapters: number;
+  color: string;
+  chapterPreviews: { number: number; title: string; date: string }[];
+  coverImageUrl: string | null;
+  coverColor: string | null;
+  coverTemplate: string;
+};
 
 export default function StoryPage({ params }: StoryPageProps) {
   return (
@@ -38,8 +40,7 @@ export default function StoryPage({ params }: StoryPageProps) {
 async function StoryPageContent({ params }: StoryPageProps) {
   await connection();
   const { id } = await params;
-  const sampleStory = stories.find((item) => item.id === id);
-  const databaseStory = sampleStory ? null : await prisma.work.findFirst({
+  const databaseStory = await prisma.work.findFirst({
     where: { id, type: "STORY", status: "APPROVED" },
     select: {
       id: true,
@@ -57,7 +58,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
       },
     },
   });
-  const story = sampleStory ?? (databaseStory ? {
+  const story: StoryView | null = databaseStory ? {
     id: databaseStory.id,
     title: databaseStory.title,
     description: databaseStory.description,
@@ -74,10 +75,10 @@ async function StoryPageContent({ params }: StoryPageProps) {
     coverImageUrl: databaseStory.coverImageUrl,
     coverColor: databaseStory.coverColor,
     coverTemplate: databaseStory.coverTemplate,
-  } : null);
+  } : null;
 
-  if (!story) notFound();
-  const previews = "chapterPreviews" in story ? story.chapterPreviews : chapterPreviews;
+  if (story === null) notFound();
+  const previews = story.chapterPreviews;
 
   return (
     <main className="min-h-screen">
@@ -93,8 +94,8 @@ async function StoryPageContent({ params }: StoryPageProps) {
       <section className="relative overflow-hidden border-y border-[#202638] bg-[#12151e]">
         <div className={`absolute inset-0 bg-gradient-to-br ${story.color} opacity-20`} />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[260px_1fr] lg:items-end lg:gap-12 lg:px-10">
-          <div className={`relative flex h-72 items-end overflow-hidden rounded-2xl bg-gradient-to-br ${"coverTemplate" in story ? getArtworkTemplateClass(story.coverTemplate) : story.color} p-6 shadow-2xl shadow-black/30 sm:h-96`} style={{ backgroundColor: "coverColor" in story ? story.coverColor : undefined }}>
-            {"coverImageUrl" in story && story.coverImageUrl && <Image src={story.coverImageUrl} alt="" fill className="object-cover" unoptimized />}
+          <div className={`relative flex h-72 items-end overflow-hidden rounded-2xl bg-gradient-to-br ${getArtworkTemplateClass(story.coverTemplate)} p-6 shadow-2xl shadow-black/30 sm:h-96`} style={{ backgroundColor: story.coverColor ?? undefined }}>
+            {story.coverImageUrl && <Image src={story.coverImageUrl} alt="" fill className="object-cover" unoptimized />}
             <div>
               <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
                 {story.genre}
@@ -111,7 +112,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
 
             <div className="mt-6 flex flex-wrap gap-5 text-xs text-[#6f7890]">
               <span>{story.chapters} chapters</span>
-              <span>{"readers" in story ? story.readers : "New"} readers</span>
+              <span>New readers</span>
               <span>Updated weekly</span>
             </div>
 
@@ -163,7 +164,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
             </div>
           </div>
           <p className="mt-5 font-sinhala text-sm leading-7 text-[#9ba5c0]">කතා කියන්න ආදරය කරන, මිනිස් හදවත් ගැන ලියන ලේඛිකාවක්.</p>
-          <Link href={`/writer/${encodeURIComponent("authorUsername" in story ? story.authorUsername : story.author)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg border border-[#30384e] text-sm text-[#c8a96e] transition hover:border-[#c8a96e]">
+          <Link href={`/writer/${encodeURIComponent(story.authorUsername)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg border border-[#30384e] text-sm text-[#c8a96e] transition hover:border-[#c8a96e]">
             View profile
           </Link>
         </aside>

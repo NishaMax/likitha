@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { awardTierEvent, removeTierEvent } from "@/lib/tier";
 import { createNotification } from "@/lib/notifications";
-import { works } from "@/lib/stories";
 
 const schema = z.object({
   action: z.enum(["like", "save"]),
@@ -36,7 +35,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid engagement request." }, { status: 400 });
   const { action, workId } = parsed.data;
   const publishedWork = await prisma.work.findFirst({ where: { id: workId, status: "APPROVED" }, select: { authorId: true, type: true } });
-  if (!publishedWork && !works.some((item) => item.id === workId)) {
+  if (!publishedWork) {
     return NextResponse.json({ error: "Published work not found." }, { status: 404 });
   }
   if (action === "like") {

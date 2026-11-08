@@ -53,19 +53,19 @@ export default function Home() {
           <div className="absolute -bottom-16 -left-20 h-56 w-56 rounded-full bg-[#6b4c32]/20 blur-3xl" />
           <div className="relative rounded-2xl border border-[#30384e] bg-[#171b26] p-4 shadow-2xl shadow-black/30 sm:p-5">
             <div className="flex items-center justify-between border-b border-[#30384e] pb-4">
-              <span className="text-xs font-medium uppercase tracking-[.18em] text-[#9ba5c0]">Featured story</span>
-              <span className="rounded-full bg-[#c8a96e]/15 px-3 py-1 text-[10px] font-semibold text-[#c8a96e]">NEW</span>
+              <span className="text-xs font-medium uppercase tracking-[.18em] text-[#9ba5c0]">The library is opening</span>
+              <span className="rounded-full bg-[#c8a96e]/15 px-3 py-1 text-[10px] font-semibold text-[#c8a96e]">READY</span>
             </div>
-            <div className="mt-5 flex min-h-64 items-end rounded-xl bg-gradient-to-br from-[#4d372d] via-[#302b39] to-[#171b26] p-5 sm:min-h-72">
+            <div className="mt-5 flex min-h-64 items-end rounded-xl bg-gradient-to-br from-[#39285D] via-[#302b39] to-[#171b26] p-5 sm:min-h-72">
               <div>
-                <p className="mb-3 text-xs uppercase tracking-[.16em] text-[#c8a96e]">A short story</p>
-                <h2 className="font-sinhala text-2xl font-bold leading-relaxed text-[#f4ead8]">අවසන් වැස්ස</h2>
-                <p className="mt-1 text-sm text-[#b8a99a]">by දිනුෂා පෙරේරා</p>
+                <p className="mb-3 text-xs uppercase tracking-[.16em] text-[#c8a96e]">Your next story</p>
+                <h2 className="font-sinhala text-2xl font-bold leading-relaxed text-[#f4ead8]">ඔබේ කතාව මෙතැනින් ආරම්භ වේ.</h2>
+                <p className="mt-2 text-sm text-[#b8a99a]">Be the first writer to publish on Likitha.</p>
               </div>
             </div>
             <div className="flex items-center justify-between pt-4 text-xs text-[#9ba5c0]">
-              <span>Romance · 12 chapters</span>
-              <span className="text-[#c8a96e]">Read now →</span>
+              <span>Stories · Poetry · Songs</span>
+              <Link href="/auth?mode=register" className="text-[#c8a96e]">Start writing →</Link>
             </div>
           </div>
         </div>

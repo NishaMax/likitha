@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { connection } from "next/server";
-import { stories, works } from "@/lib/stories";
 import { prisma } from "@/lib/prisma";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://likitha.lk";
@@ -9,10 +8,6 @@ type SitemapEntry = { path: string; updatedAt?: Date };
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   await connection();
   const staticRoutes = ["/", "/browse", "/auth", "/login", "/register", "/privacy", "/terms"];
-  const sampleRoutes = works.map((work) => (work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`));
-  const sampleChapterRoutes = stories.flatMap((story) =>
-    Array.from({ length: story.chapters }, (_, index) => `/story/${story.id}/chapter/${index + 1}`),
-  );
 
   const approvedWorks = await prisma.work.findMany({
     where: { status: "APPROVED" },
@@ -32,7 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       updatedAt: chapter.updatedAt,
     })),
   ]);
-  const staticEntries: SitemapEntry[] = [...staticRoutes, ...sampleRoutes, ...sampleChapterRoutes].map((path) => ({ path }));
+  const staticEntries: SitemapEntry[] = staticRoutes.map((path) => ({ path }));
   const entries = [...staticEntries, ...databaseRoutes];
   const seen = new Set<string>();
 

@@ -4,7 +4,6 @@ import Image from "next/image";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import DashboardNav from "@/components/dashboard/DashboardNav";
-import { works } from "@/lib/stories";
 import TierBadge from "@/components/profile/TierBadge";
 
 const dashboardCopy = {
@@ -65,6 +64,11 @@ export default async function DashboardContent() {
   });
   if (!user) redirect("/auth?mode=login");
   if (!user.profileComplete) redirect("/onboarding");
+  const progressWorks = await prisma.work.findMany({
+    where: { id: { in: user.readingProgress.map((item) => item.workId) }, status: "APPROVED" },
+    select: { id: true, type: true, title: true, chapters: { where: { status: "APPROVED" }, select: { id: true } } },
+  });
+  const progressWorkMap = new Map(progressWorks.map((work) => [work.id, work]));
 
   const role = user.role;
   const copy = dashboardCopy[role];
@@ -164,11 +168,11 @@ export default async function DashboardContent() {
             {readerProgress.length > 0 ? (
               <div className="mt-5 divide-y divide-[#252d40]">
                 {readerProgress.map((item) => {
-                  const work = works.find((candidate) => candidate.id === item.workId);
+                  const work = progressWorkMap.get(item.workId);
                   if (!work) return null;
-                  const href = work.type === "Stories" ? `/story/${work.id}` : `/work/${work.id}`;
-                  const progressLabel = work.type === "Stories"
-                    ? `${item.chaptersRead} of ${item.totalChapters ?? work.chapters} chapters`
+                  const href = work.type === "STORY" ? `/story/${work.id}` : `/work/${work.id}`;
+                  const progressLabel = work.type === "STORY"
+                    ? `${item.chaptersRead} of ${item.totalChapters ?? work.chapters.length} chapters`
                     : item.completed ? "Marked as read" : "In progress";
                   return (
                     <Link key={item.workId} href={href} className="flex min-h-16 items-center gap-4 py-4 hover:text-[#c8a96e]">
