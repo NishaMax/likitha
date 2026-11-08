@@ -51,9 +51,34 @@ async function ChapterPageContent({ params }: ChapterPageProps) {
           </div>
           {databaseChapter.imageUrl && <Image src={databaseChapter.imageUrl} alt="" width={900} height={420} className="mt-8 max-h-[28rem] w-full rounded-2xl object-cover" unoptimized />}
           <div className="mt-10 whitespace-pre-line font-sinhala text-lg leading-[2] text-[#d2d7e2]">{databaseChapter.content}</div>
-          <div className="mt-14 flex items-center justify-between border-t border-[#252d40] pt-6">
-            <span className="text-sm text-[#6f7890]">Chapter {number} of {totalChapters}</span>
-            {number < totalChapters ? <Link href={`/story/${id}/chapter/${number + 1}`} className="flex min-h-11 items-center rounded-lg bg-[#c8a96e] px-4 text-sm font-semibold text-[#0f1117]">Next chapter →</Link> : <ReadingProgressButton workId={id} workType="STORY" chapterNumber={number} totalChapters={totalChapters} />}
+          <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-[#252d40] pt-6">
+            <div>
+              {number > 1 ? (
+                <Link
+                  href={`/story/${id}/chapter/${number - 1}`}
+                  className="inline-flex min-h-11 items-center rounded-lg border border-[#30384e] px-4 text-sm text-[#9ba5c0] transition hover:border-[#c8a96e]/60 hover:text-[#e8ecf4]"
+                >
+                  ← Previous chapter
+                </Link>
+              ) : (
+                <span className="text-sm text-[#6f7890]">Chapter {number} of {totalChapters}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              {number > 1 && (
+                <span className="text-sm text-[#6f7890]">Chapter {number} of {totalChapters}</span>
+              )}
+              {number < totalChapters ? (
+                <Link
+                  href={`/story/${id}/chapter/${number + 1}`}
+                  className="flex min-h-11 items-center rounded-lg bg-[#c8a96e] px-4 text-sm font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d]"
+                >
+                  Next chapter →
+                </Link>
+              ) : (
+                <ReadingProgressButton workId={id} workType="STORY" chapterNumber={number} totalChapters={totalChapters} />
+              )}
+            </div>
           </div>
         </article>
       </main>

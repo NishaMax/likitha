@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/auth";
@@ -11,5 +12,20 @@ export default function NewWorkPage() {
 async function NewWorkContent() {
   const session = await auth();
   if (!session?.user) redirect("/auth?mode=login");
-  return <main className="min-h-screen"><DashboardNav role="WRITER" /><section className="mx-auto max-w-6xl px-5 pb-20 pt-10 sm:px-8 sm:pt-16"><p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Writer studio</p><h1 className="mt-4 font-serif text-4xl text-[#e8ecf4]">Create a new work.</h1><p className="mt-3 max-w-xl text-sm leading-7 text-[#9ba5c0]">Choose a format, save a draft, or submit it for admin approval.</p><div className="mt-8"><WriterWorkForm /></div></section></main>;
+  return (
+    <main className="min-h-screen">
+      <DashboardNav role="WRITER" />
+      <section className="mx-auto max-w-6xl px-5 pb-20 pt-10 sm:px-8 sm:pt-16">
+        <Link href="/dashboard/works" className="inline-flex items-center text-sm text-[#9ba5c0] hover:text-[#e8ecf4]">
+          ← Back to my works
+        </Link>
+        <div className="mt-4">
+          <p className="text-xs font-semibold uppercase tracking-[.18em] text-[#c8a96e]">Writer studio</p>
+          <h1 className="mt-2 font-serif text-4xl text-[#e8ecf4]">Create a new work.</h1>
+          <p className="mt-2 max-w-xl text-sm leading-7 text-[#9ba5c0]">Choose a format, save a draft, or submit it for admin approval.</p>
+        </div>
+        <div className="mt-8"><WriterWorkForm /></div>
+      </section>
+    </main>
+  );
 }

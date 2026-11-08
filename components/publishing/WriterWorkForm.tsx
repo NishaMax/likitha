@@ -60,8 +60,8 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
       setError("Choose a JPG, PNG, or WebP cover image.");
       return;
     }
-    if (file.size > 1_000_000) {
-      setError("Cover images must be smaller than 1 MB.");
+    if (file.size > 2_500_000) {
+      setError("Cover images must be smaller than 2.5 MB.");
       return;
     }
     const reader = new FileReader();
@@ -287,7 +287,7 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
               Upload cover image
               <input id="cover-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseCover} className="sr-only" />
             </label>
-            <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 1 MB. If you skip it, choose a template and color.</p>
+            <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 2.5 MB. If you skip it, choose a template and color.</p>
             <div className="flex flex-wrap gap-2">
               {artworkTemplates.map((template) => (
                 <button

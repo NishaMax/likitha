@@ -105,9 +105,14 @@ export default async function DashboardContent() {
                   Edit public name
                 </Link>
                 {role === "WRITER" && (
-                  <Link href={`/writer/${user.username}`} className="mt-8 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
-                    View public profile
-                  </Link>
+                  <>
+                    <Link href="/dashboard/works" className="mt-8 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
+                      My works & drafts
+                    </Link>
+                    <Link href={`/writer/${user.username}`} className="mt-8 inline-flex min-h-12 items-center rounded-lg border border-[#30384e] px-5 text-sm text-[#c8a96e] transition hover:border-[#c8a96e]/60">
+                      View public profile
+                    </Link>
+                  </>
                 )}
               </div>
             </div>

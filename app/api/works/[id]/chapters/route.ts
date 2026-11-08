@@ -4,12 +4,17 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isArtworkTemplate } from "@/lib/artwork";
 
+const imageDataUrl = z.string().refine((val) => {
+  if (!val) return true;
+  return val.startsWith("data:image/") || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("/");
+}, { message: "Choose a valid image format." }).max(3_500_000, "Image size is too large.");
+
 const chapterSchema = z.object({
-  title: z.string().trim().min(2).max(120),
-  content: z.string().trim().min(20).max(100_000),
-  imageUrl: z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(1_400_000).nullable().optional(),
-  imageColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
-  imageTemplate: z.string().refine(isArtworkTemplate).optional(),
+  title: z.string().trim().min(2, "Chapter title must be at least 2 characters.").max(120, "Chapter title cannot exceed 120 characters."),
+  content: z.string().trim().min(20, "Chapter content must be at least 20 characters.").max(100_000),
+  imageUrl: imageDataUrl.nullable().optional(),
+  imageColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+  imageTemplate: z.string().refine(isArtworkTemplate).nullable().optional(),
   submit: z.boolean().optional(),
 });
 
@@ -26,7 +31,10 @@ export async function POST(request: Request, { params }: RouteProps) {
   let body: unknown;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid chapter request." }, { status: 400 }); }
   const parsed = chapterSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Chapter title and content are required." }, { status: 400 });
+  if (!parsed.success) {
+    const errorMsg = parsed.error.issues.map((i) => i.message).filter(Boolean).join(". ");
+    return NextResponse.json({ error: errorMsg || "Chapter title and content are required." }, { status: 400 });
+  }
   const chapterNo = Math.max(0, ...work.chapters.map((chapter) => chapter.chapterNo)) + 1;
   const submit = parsed.data.submit === true;
   const chapter = await prisma.chapter.create({

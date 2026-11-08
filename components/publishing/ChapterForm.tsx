@@ -43,8 +43,8 @@ export default function ChapterForm({ workId, initialChapter }: ChapterFormProps
       setError("Choose a JPG, PNG, or WebP chapter image.");
       return;
     }
-    if (file.size > 1_000_000) {
-      setError("Chapter images must be smaller than 1 MB.");
+    if (file.size > 2_500_000) {
+      setError("Chapter images must be smaller than 2.5 MB.");
       return;
     }
     const reader = new FileReader();
@@ -134,7 +134,7 @@ export default function ChapterForm({ workId, initialChapter }: ChapterFormProps
               Upload chapter image
               <input id="chapter-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseImage} className="sr-only" />
             </label>
-            <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 1 MB. A template or color is used when no image is uploaded.</p>
+            <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 2.5 MB. A template or color is used when no image is uploaded.</p>
             <div className="flex flex-wrap gap-2">
               {artworkTemplates.map((template) => (
                 <button key={template.value} type="button" onClick={() => setImageTemplate(template.value)} className={`min-h-11 rounded-lg border px-3 text-xs ${imageTemplate === template.value ? "border-[#c8a96e] text-[#c8a96e]" : "border-[#30384e] text-[#9ba5c0]"}`}>{template.label}</button>

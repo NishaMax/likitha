@@ -4,21 +4,25 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isArtworkTemplate } from "@/lib/artwork";
 
-const imageDataUrl = z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(1_400_000);
+const imageDataUrl = z.string().refine((val) => {
+  if (!val) return true;
+  return val.startsWith("data:image/") || val.startsWith("http://") || val.startsWith("https://") || val.startsWith("/");
+}, { message: "Choose a valid image format." }).max(3_500_000, "Image size is too large.");
+
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
 const workSchema = z.object({
   type: z.enum(["STORY", "POETRY", "SONG"]),
-  storyFormat: z.enum(["SINGLE", "SERIAL"]).optional(),
-  title: z.string().trim().min(2).max(120),
-  description: z.string().trim().min(10).max(1000),
-  genre: z.string().trim().min(2).max(40),
-  content: z.string().trim().max(100_000).optional(),
-  chapter1Title: z.string().trim().max(120).optional(),
-  chapter1Content: z.string().trim().max(100_000).optional(),
+  storyFormat: z.enum(["SINGLE", "SERIAL"]).nullable().optional(),
+  title: z.string().trim().min(2, "Title must be at least 2 characters.").max(120, "Title cannot exceed 120 characters."),
+  description: z.string().trim().min(10, "Description must be at least 10 characters.").max(1000, "Description cannot exceed 1000 characters."),
+  genre: z.string().trim().min(2, "Genre must be at least 2 characters.").max(40, "Genre cannot exceed 40 characters."),
+  content: z.string().trim().max(100_000).nullable().optional(),
+  chapter1Title: z.string().trim().max(120).nullable().optional(),
+  chapter1Content: z.string().trim().max(100_000).nullable().optional(),
   coverImageUrl: imageDataUrl.nullable().optional(),
-  coverColor: hexColor.optional(),
-  coverTemplate: z.string().refine(isArtworkTemplate).optional(),
+  coverColor: hexColor.nullable().optional(),
+  coverTemplate: z.string().refine(isArtworkTemplate).nullable().optional(),
   submit: z.boolean().optional(),
 });
 
@@ -53,7 +57,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid work request." }, { status: 400 });
   }
   const parsed = workSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Complete all fields before saving." }, { status: 400 });
+  if (!parsed.success) {
+    const errorMsg = parsed.error.issues.map((i) => i.message).filter(Boolean).join(". ");
+    return NextResponse.json({ error: errorMsg || "Please fill in all required fields correctly." }, { status: 400 });
+  }
   const status = parsed.data.submit ? "PENDING" : "DRAFT";
   const isSingleChapter = parsed.data.type === "STORY" && parsed.data.storyFormat === "SINGLE";
   const hasChapterContent = Boolean(parsed.data.content?.trim() || parsed.data.chapter1Content?.trim());
