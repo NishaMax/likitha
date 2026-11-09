@@ -15,6 +15,7 @@ const maxAvatarBytes = 1_000_000;
 export default function ProfileNameForm({ initialName = "", initialAvatarUrl = null, onboarding = false }: ProfileNameFormProps) {
   const [displayName, setDisplayName] = useState(initialName);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
+  const [avatarError, setAvatarError] = useState(""); // shown at eye level near avatar button
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -23,18 +24,19 @@ export default function ProfileNameForm({ initialName = "", initialAvatarUrl = n
   function chooseAvatar(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    setAvatarError("");
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-      setError("Choose a JPG, PNG, WebP, or GIF image.");
+      setAvatarError("Choose a JPG, PNG, WebP, or GIF image.");
       return;
     }
     if (file.size > maxAvatarBytes) {
-      setError("Profile images must be smaller than 1 MB.");
+      setAvatarError("Profile image must be smaller than 1 MB.");
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => setAvatarUrl(typeof reader.result === "string" ? reader.result : null);
-    reader.onerror = () => setError("We could not read that image. Please try again.");
+    reader.onerror = () => setAvatarError("We could not read that image. Please try again.");
     reader.readAsDataURL(file);
   }
 
@@ -68,7 +70,7 @@ export default function ProfileNameForm({ initialName = "", initialAvatarUrl = n
 
   return (
     <form onSubmit={saveName} className="w-full max-w-md space-y-6">
-      <div className="flex items-center gap-4 rounded-2xl border border-[#30384e] bg-[#171b26] p-4">
+      <div className="flex items-start gap-4 rounded-2xl border border-[#30384e] bg-[#171b26] p-4">
         <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#c8a96e]/40 bg-[#12151e] text-3xl font-serif text-[#c8a96e]">
           {avatarUrl ? <Image src={avatarUrl} alt="" width={80} height={80} className="h-full w-full object-cover" unoptimized /> : displayName.charAt(0).toUpperCase()}
         </div>
@@ -78,6 +80,10 @@ export default function ProfileNameForm({ initialName = "", initialAvatarUrl = n
             <input id="reader-avatar" type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={chooseAvatar} className="sr-only" />
           </label>
           <p className="mt-2 text-xs leading-5 text-[#6f7890]">JPG, PNG, WebP, or GIF. Maximum 1 MB.</p>
+          {/* Avatar error shown at eye level immediately below the button */}
+          {avatarError && (
+            <p role="alert" className="mt-2 rounded-lg border border-[#f87171]/30 bg-[#f87171]/10 px-3 py-2 text-xs text-[#fca5a5]">{avatarError}</p>
+          )}
         </div>
       </div>
       <label htmlFor="displayName" className="mb-2 block text-sm text-[#c4cada]">Public display name</label>

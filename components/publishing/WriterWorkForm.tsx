@@ -48,6 +48,7 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
     (initialWork?.coverTemplate as ArtworkTemplate) ?? defaultArtworkTemplate
   );
   const [submit, setSubmit] = useState(false);
+  const [coverError, setCoverError] = useState(""); // shown at eye level near the cover upload button
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -56,17 +57,18 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
   function chooseCover(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    setCoverError("");
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Choose a JPG, PNG, or WebP cover image.");
+      setCoverError("Choose a JPG, PNG, or WebP cover image.");
       return;
     }
     if (file.size > 2_500_000) {
-      setError("Cover images must be smaller than 2.5 MB.");
+      setCoverError("Cover image must be smaller than 2.5 MB.");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => setCoverImageUrl(typeof reader.result === "string" ? reader.result : null);
-    reader.onerror = () => setError("We could not read that cover image. Please try again.");
+    reader.onerror = () => setCoverError("We could not read that cover image. Please try again.");
     reader.readAsDataURL(file);
   }
 
@@ -288,6 +290,10 @@ export default function WriterWorkForm({ initialWork }: WriterWorkFormProps) {
               <input id="cover-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseCover} className="sr-only" />
             </label>
             <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 2.5 MB. If you skip it, choose a template and color.</p>
+            {/* Cover image error shown immediately at eye level, below the button */}
+            {coverError && (
+              <p role="alert" className="rounded-lg border border-[#f87171]/30 bg-[#f87171]/10 px-3 py-2 text-xs text-[#fca5a5]">{coverError}</p>
+            )}
             <div className="flex flex-wrap gap-2">
               {artworkTemplates.map((template) => (
                 <button

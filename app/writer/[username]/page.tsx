@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import PublicNav from "@/components/navigation/PublicNav";
 import FollowButton from "@/components/engagement/FollowButton";
@@ -10,6 +11,52 @@ import TierBadge from "@/components/profile/TierBadge";
 type WriterPageProps = {
   params: Promise<{ username: string }>;
 };
+
+export async function generateMetadata({ params }: WriterPageProps): Promise<Metadata> {
+  const { username } = await params;
+  const writer = await prisma.user.findFirst({
+    where: { username, role: "WRITER", isBanned: false },
+    select: {
+      displayName: true,
+      bio: true,
+      avatarUrl: true,
+      tier: true,
+    },
+  });
+
+  if (!writer) {
+    return {
+      title: "Writer Not Found | Likitha",
+    };
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://likitha.lk";
+  const title = `${writer.displayName} — Writer on Likitha`;
+  const description = writer.bio || `Read Sinhala stories, poetry, and novels by ${writer.displayName} on Likitha.`;
+
+  return {
+    title,
+    description,
+    keywords: [writer.displayName, "Sinhala writer", "Sri Lankan author", "Likitha"],
+    openGraph: {
+      title,
+      description,
+      type: "profile",
+      url: `${siteUrl}/writer/${username}`,
+      siteName: "Likitha",
+      ...(writer.avatarUrl ? { images: [{ url: writer.avatarUrl, alt: writer.displayName }] } : {}),
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      ...(writer.avatarUrl ? { images: [writer.avatarUrl] } : {}),
+    },
+    alternates: {
+      canonical: `/writer/${username}`,
+    },
+  };
+}
 
 export default function WriterPage({ params }: WriterPageProps) {
   return (

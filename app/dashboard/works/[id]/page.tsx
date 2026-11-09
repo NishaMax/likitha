@@ -46,8 +46,10 @@ async function WriterWorkContent({ params }: Props) {
 
   if (!work) notFound();
 
-  const isSingleChapterStory =
-    work.type === "STORY" && (Boolean(work.content) || work.chapters.length <= 1);
+  // A story is "single-chapter" only when body content is stored directly on the
+  // Work record (the SINGLE format). SERIAL stories always store chapters separately,
+  // so their chapter count is never used to determine format.
+  const isSingleChapterStory = work.type === "STORY" && Boolean(work.content);
   const singleChapter = work.chapters.length > 0 ? work.chapters[0] : null;
 
   return (

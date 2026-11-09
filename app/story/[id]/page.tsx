@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import PublicNav from "@/components/navigation/PublicNav";
 import EngagementControls from "@/components/engagement/EngagementControls";
 import CommentsSection from "@/components/engagement/CommentsSection";
@@ -21,6 +22,7 @@ type StoryView = {
   genre: string;
   author: string;
   authorUsername: string;
+  isSingleStory: boolean;
   chapters: number;
   color: string;
   chapterPreviews: { number: number; title: string; date: string }[];
@@ -28,6 +30,53 @@ type StoryView = {
   coverColor: string | null;
   coverTemplate: string;
 };
+
+export async function generateMetadata({ params }: StoryPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const story = await prisma.work.findFirst({
+    where: { id, type: "STORY", status: "APPROVED" },
+    select: {
+      title: true,
+      description: true,
+      genre: true,
+      coverImageUrl: true,
+      author: { select: { displayName: true } },
+    },
+  });
+
+  if (!story) {
+    return {
+      title: "Story Not Found | Likitha",
+    };
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://likitha.lk";
+  const title = `${story.title} — ${story.author.displayName}`;
+  const description = story.description.slice(0, 160);
+
+  return {
+    title,
+    description,
+    keywords: [story.title, story.author.displayName, story.genre, "Sinhala story", "Likitha"],
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `${siteUrl}/story/${id}`,
+      siteName: "Likitha",
+      ...(story.coverImageUrl ? { images: [{ url: story.coverImageUrl, alt: story.title }] } : {}),
+    },
+    twitter: {
+      card: story.coverImageUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(story.coverImageUrl ? { images: [story.coverImageUrl] } : {}),
+    },
+    alternates: {
+      canonical: `/story/${id}`,
+    },
+  };
+}
 
 export default function StoryPage({ params }: StoryPageProps) {
   return (
@@ -47,6 +96,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
       title: true,
       description: true,
       genre: true,
+      content: true,
       coverImageUrl: true,
       coverColor: true,
       coverTemplate: true,
@@ -58,6 +108,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
       },
     },
   });
+
   const story: StoryView | null = databaseStory ? {
     id: databaseStory.id,
     title: databaseStory.title,
@@ -65,6 +116,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
     genre: databaseStory.genre,
     author: databaseStory.author.displayName,
     authorUsername: databaseStory.author.username,
+    isSingleStory: Boolean(databaseStory.content),
     chapters: databaseStory.chapters.length,
     color: "from-[#334c50] via-[#273443] to-[#1b202d]",
     chapterPreviews: databaseStory.chapters.map((chapter) => ({
@@ -80,8 +132,28 @@ async function StoryPageContent({ params }: StoryPageProps) {
   if (story === null) notFound();
   const previews = story.chapterPreviews;
 
+  // JSON-LD structured data for Google Rich Results
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: story.title,
+    headline: story.title,
+    description: story.description,
+    author: {
+      "@type": "Person",
+      name: story.author,
+    },
+    genre: story.genre,
+    inLanguage: "si",
+    image: story.coverImageUrl ?? undefined,
+  };
+
   return (
     <main className="min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <ViewTracker workId={story.id} />
       <PublicNav />
 
@@ -95,8 +167,8 @@ async function StoryPageContent({ params }: StoryPageProps) {
         <div className={`absolute inset-0 bg-gradient-to-br ${story.color} opacity-20`} />
         <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 sm:px-8 sm:py-16 lg:grid-cols-[260px_1fr] lg:items-end lg:gap-12 lg:px-10">
           <div className={`relative flex h-72 items-end overflow-hidden rounded-2xl bg-gradient-to-br ${getArtworkTemplateClass(story.coverTemplate)} p-6 shadow-2xl shadow-black/30 sm:h-96`} style={{ backgroundColor: story.coverColor ?? undefined }}>
-            {story.coverImageUrl && <Image src={story.coverImageUrl} alt="" fill className="object-cover" unoptimized />}
-            <div>
+            {story.coverImageUrl && <Image src={story.coverImageUrl} alt="" fill className="object-cover" unoptimized priority />}
+            <div className="relative z-10">
               <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
                 {story.genre}
               </span>
@@ -111,9 +183,15 @@ async function StoryPageContent({ params }: StoryPageProps) {
             <p className="mt-6 max-w-xl font-sinhala text-base leading-8 text-[#c4cada]">{story.description}</p>
 
             <div className="mt-6 flex flex-wrap gap-5 text-xs text-[#6f7890]">
-              <span>{story.chapters === 1 ? "1 chapter (Single story)" : `${story.chapters} chapters`}</span>
+              <span>
+                {story.isSingleStory
+                  ? "1 chapter (Single story)"
+                  : story.chapters === 1
+                  ? "1 chapter (Series)"
+                  : `${story.chapters} chapters (Series)`}
+              </span>
               <span>New readers</span>
-              <span>{story.chapters === 1 ? "Complete story" : "Updated weekly"}</span>
+              <span>{story.isSingleStory ? "Complete story" : "Ongoing series"}</span>
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -150,7 +228,7 @@ async function StoryPageContent({ params }: StoryPageProps) {
                 <span className="text-[#6f7890]">→</span>
               </Link>
             ))}
-            {story.chapters > 1 && (
+            {!story.isSingleStory && (
               <div className="py-4 text-center text-xs text-[#6f7890]">More chapters coming soon</div>
             )}
           </div>
@@ -165,9 +243,8 @@ async function StoryPageContent({ params }: StoryPageProps) {
               <p className="mt-1 text-xs text-[#6f7890]">Silver writer</p>
             </div>
           </div>
-          <p className="mt-5 font-sinhala text-sm leading-7 text-[#9ba5c0]">කතා කියන්න ආදරය කරන, මිනිස් හදවත් ගැන ලියන ලේඛිකාවක්.</p>
-          <Link href={`/writer/${encodeURIComponent(story.authorUsername)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-lg border border-[#30384e] text-sm text-[#c8a96e] transition hover:border-[#c8a96e]">
-            View profile
+          <Link href={`/writer/${story.authorUsername}`} className="mt-5 inline-block text-xs text-[#c8a96e] hover:underline">
+            View full profile →
           </Link>
         </aside>
       </section>

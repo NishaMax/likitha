@@ -12,8 +12,20 @@ function WorkCard({ work, isRead }: { work: Work; isRead: boolean }) {
       href={isStory ? `/story/${work.id}` : `/work/${work.id}`}
       className="group rounded-2xl border border-[#252d40] bg-[#171b26] p-3 transition hover:-translate-y-1 hover:border-[#c8a96e]/50"
     >
-      <div className={`flex h-48 items-end rounded-xl bg-gradient-to-br ${work.color} p-4 sm:h-56`}>
-        <div>
+      {/* Cover thumbnail — shows uploaded image if available, otherwise the gradient */}
+      <div className={`relative flex h-48 items-end overflow-hidden rounded-xl bg-gradient-to-br ${work.color} p-4 sm:h-56`}>
+        {work.coverImageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={work.coverImageUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+          />
+        )}
+        {/* Dark gradient overlay so text stays readable over photos */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="relative z-10">
           {isRead && <span className="mb-2 block w-fit rounded-full bg-[#86efac]/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[.15em] text-[#bbf7d0]">Read</span>}
           <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
             {work.type === "Stories" ? "Story" : work.type === "Poetry" ? "Poetry" : "Song"}

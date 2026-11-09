@@ -32,6 +32,7 @@ export default function ChapterForm({ workId, initialChapter }: ChapterFormProps
     (initialChapter?.imageTemplate as ArtworkTemplate) ?? defaultArtworkTemplate
   );
   const [submit, setSubmit] = useState(false);
+  const [imageError, setImageError] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const router = useRouter();
@@ -39,17 +40,18 @@ export default function ChapterForm({ workId, initialChapter }: ChapterFormProps
   function chooseImage(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
+    setImageError("");
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Choose a JPG, PNG, or WebP chapter image.");
+      setImageError("Choose a JPG, PNG, or WebP chapter image.");
       return;
     }
     if (file.size > 2_500_000) {
-      setError("Chapter images must be smaller than 2.5 MB.");
+      setImageError("Chapter images must be smaller than 2.5 MB.");
       return;
     }
     const reader = new FileReader();
     reader.onload = () => setImageUrl(typeof reader.result === "string" ? reader.result : null);
-    reader.onerror = () => setError("We could not read that chapter image. Please try again.");
+    reader.onerror = () => setImageError("We could not read that chapter image. Please try again.");
     reader.readAsDataURL(file);
   }
 
@@ -135,6 +137,9 @@ export default function ChapterForm({ workId, initialChapter }: ChapterFormProps
               <input id="chapter-image" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseImage} className="sr-only" />
             </label>
             <p className="text-xs leading-5 text-[#6f7890]">JPG, PNG, or WebP. Maximum 2.5 MB. A template or color is used when no image is uploaded.</p>
+            {imageError && (
+              <p role="alert" className="rounded-lg border border-[#f87171]/30 bg-[#f87171]/10 px-3 py-2 text-xs text-[#fca5a5]">{imageError}</p>
+            )}
             <div className="flex flex-wrap gap-2">
               {artworkTemplates.map((template) => (
                 <button key={template.value} type="button" onClick={() => setImageTemplate(template.value)} className={`min-h-11 rounded-lg border px-3 text-xs ${imageTemplate === template.value ? "border-[#c8a96e] text-[#c8a96e]" : "border-[#30384e] text-[#9ba5c0]"}`}>{template.label}</button>

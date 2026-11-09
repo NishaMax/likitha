@@ -1,7 +1,47 @@
 import Link from "next/link";
+import Image from "next/image";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { connection } from "next/server";
 import Brand from "@/components/navigation/Brand";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { getArtworkTemplateClass } from "@/lib/artwork";
 
+/** Logged-in users are sent straight to their dashboard — they never see the landing page. */
 export default function Home() {
+  return (
+    <Suspense fallback={<main className="min-h-screen" />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+async function HomeContent() {
+  await connection();
+
+  const session = await auth();
+  if (session?.user?.email) redirect("/dashboard");
+
+  // Fetch up to 3 approved stories to show as previews on the landing page
+  const featuredWorks = await prisma.work.findMany({
+    where: { status: "APPROVED" },
+    orderBy: { publishedAt: "desc" },
+    take: 3,
+    select: {
+      id: true,
+      type: true,
+      title: true,
+      description: true,
+      genre: true,
+      coverImageUrl: true,
+      coverColor: true,
+      coverTemplate: true,
+      author: { select: { displayName: true } },
+      _count: { select: { chapters: true } },
+    },
+  });
+
   return (
     <main className="site-home min-h-screen overflow-hidden">
       <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
@@ -37,7 +77,7 @@ export default function Home() {
             <Link href="/browse" className="flex min-h-12 items-center justify-center rounded-lg bg-[#c8a96e] px-6 font-semibold text-[#0f1117] transition hover:bg-[#d9ba7d]">
               Explore stories <span className="ml-2 text-lg">→</span>
             </Link>
-            <a href="#write" className="flex min-h-12 items-center justify-center rounded-lg border border-[#30384e] px-6 font-medium text-[#e8ecf4] transition hover:border-[#c8a96e]/60">
+            <a href="#discover" className="flex min-h-12 items-center justify-center rounded-lg border border-[#30384e] px-6 font-medium text-[#e8ecf4] transition hover:border-[#c8a96e]/60">
               Share your story
             </a>
           </div>
@@ -71,6 +111,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Featured stories section — shows up to 3 real approved stories */}
       <section id="discover" className="border-t border-[#202638] bg-[#12151e]">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:px-10">
           <div className="flex items-end justify-between gap-4">
@@ -80,19 +121,83 @@ export default function Home() {
             </div>
             <Link href="/browse" className="hidden min-h-11 items-center text-sm text-[#9ba5c0] hover:text-[#c8a96e] sm:flex">View all <span className="ml-2">→</span></Link>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {[
-              ["01", "The stories everyone is reading", "Trending now"],
-              ["02", "Fresh voices, new worlds", "New arrivals"],
-              ["03", "Find your next favourite", "Browse genres"],
-            ].map(([number, title, label]) => (
-              <Link key={number} href="/browse" className="group rounded-xl border border-[#252d40] bg-[#171b26] p-5 transition hover:-translate-y-1 hover:border-[#c8a96e]/40">
-                <span className="font-mono text-xs text-[#c8a96e]">{number}</span>
-                <h3 className="mt-10 font-sinhala text-lg font-bold leading-8 text-[#e8ecf4]">{title}</h3>
-                <p className="mt-2 text-sm text-[#6f7890]">{label} <span className="ml-1 transition group-hover:ml-2 group-hover:text-[#c8a96e]">→</span></p>
-              </Link>
-            ))}
-          </div>
+
+          {featuredWorks.length > 0 ? (
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredWorks.map((work) => {
+                const href = work.type === "STORY" ? `/story/${work.id}` : `/work/${work.id}`;
+                return (
+                  <Link
+                    key={work.id}
+                    href={href}
+                    className="group rounded-2xl border border-[#252d40] bg-[#171b26] p-3 transition hover:-translate-y-1 hover:border-[#c8a96e]/50"
+                  >
+                    <div
+                      className={`relative flex h-48 items-end overflow-hidden rounded-xl bg-gradient-to-br ${getArtworkTemplateClass(work.coverTemplate)} p-4`}
+                      style={{ backgroundColor: work.coverColor ?? undefined }}
+                    >
+                      {work.coverImageUrl && (
+                        <Image
+                          src={work.coverImageUrl}
+                          alt=""
+                          fill
+                          className="object-cover"
+                          unoptimized
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="relative z-10">
+                        <span className="rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[.15em] text-[#e9d8b7]">
+                          {work.type === "STORY" ? "Story" : work.type === "POETRY" ? "Poetry" : "Song"}
+                        </span>
+                        <h3 className="mt-3 font-sinhala text-xl font-bold leading-relaxed text-[#f4ead8]">{work.title}</h3>
+                      </div>
+                    </div>
+                    <div className="px-1 pb-1 pt-4">
+                      <p className="text-sm text-[#9ba5c0]">by {work.author.displayName}</p>
+                      <p className="mt-2 line-clamp-2 font-sinhala text-sm leading-7 text-[#6f7890]">{work.description}</p>
+                      <div className="mt-4 flex items-center justify-between border-t border-[#252d40] pt-3 text-xs text-[#6f7890]">
+                        <span>
+                          {work.type === "STORY"
+                            ? work._count.chapters === 1
+                              ? "1 chapter"
+                              : `${work._count.chapters} chapters`
+                            : work.type === "POETRY"
+                            ? "Poem"
+                            : "Lyrics"}
+                        </span>
+                        <span className="text-[#c8a96e] group-hover:underline">Read →</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            /* Placeholder cards when no stories are published yet */
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              {(
+                [
+                  ["01", "The stories everyone is reading", "Trending now"],
+                  ["02", "Fresh voices, new worlds", "New arrivals"],
+                  ["03", "Find your next favourite", "Browse genres"],
+                ] as const
+              ).map(([number, title, label]) => (
+                <Link
+                  key={number}
+                  href="/browse"
+                  className="group rounded-xl border border-[#252d40] bg-[#171b26] p-5 transition hover:-translate-y-1 hover:border-[#c8a96e]/40"
+                >
+                  <span className="font-mono text-xs text-[#c8a96e]">{number}</span>
+                  <h3 className="mt-10 font-sinhala text-lg font-bold leading-8 text-[#e8ecf4]">{title}</h3>
+                  <p className="mt-2 text-sm text-[#6f7890]">
+                    {label} <span className="ml-1 transition group-hover:ml-2 group-hover:text-[#c8a96e]">→</span>
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
